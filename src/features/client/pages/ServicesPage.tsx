@@ -2,33 +2,19 @@ import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import CtaSection from '../components/common/CtaSection';
 import { motion } from 'framer-motion';
-import { Building2, PaintRoller, CheckCircle2, Users, MessageSquare, PenTool, HardHat, Key } from 'lucide-react';
+import { MessageSquare, PenTool, HardHat, Key } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { serviceService } from '../../../services/serviceService';
+import * as LucideIcons from 'lucide-react';
 
-// Data Layanan Arsitektur
-const architectureFeatures = [
-  'Perencanaan & Desain Struktural',
-  'Pengembangan Fasad Modern',
-  'Manajemen Proyek & Konstruksi',
-  'Integrasi Desain Ramah Lingkungan'
-];
+const IconRenderer = ({ name, className }: { name?: string, className?: string }) => {
+  if (!name) return null;
+  const IconComponent = LucideIcons[name as keyof typeof LucideIcons] as React.ElementType;
+  if (!IconComponent) return null;
+  return <IconComponent className={className} />;
+};
 
-// Data Layanan Interior
-const interiorFeatures = [
-  'Pemilihan Material & Furnitur Kustom',
-  'Perencanaan Tata Cahaya (Lighting)',
-  'Optimalisasi Ruang Sempit',
-  'Konsep Smart Home Integration'
-];
-
-// Data Layanan Konsultasi
-const consultingFeatures = [
-  'Studi Kelayakan Proyek (Feasibility Study)',
-  'Estimasi Rencana Anggaran Biaya (RAB)',
-  'Konsultasi Perizinan Bangunan (PBG/IMB)',
-  'Audit Struktur Bangunan Lama'
-];
-
-// Data Proses Kerja
+// Data Proses Kerja (tetap statis)
 const workProcesses = [
   {
     icon: <MessageSquare size={32} />,
@@ -53,6 +39,13 @@ const workProcesses = [
 ];
 
 export default function ServicesPage() {
+  const { data: servicesResponse, isLoading, isError } = useQuery({
+    queryKey: ['services'],
+    queryFn: () => serviceService.getServices()
+  });
+
+  const services = servicesResponse?.data || [];
+
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-x-hidden">
       <Navbar />
@@ -88,129 +81,67 @@ export default function ServicesPage() {
       {/* --- MAIN SERVICES (ZIG-ZAG) --- */}
       <main className="max-w-7xl mx-auto px-8 pb-32 flex flex-col gap-32 pt-10">
         
-        {/* Layanan 1: Arsitektur (Gambar Kiri, Teks Kanan) */}
-        <div className="flex flex-col md:flex-row items-center gap-16">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full md:w-1/2 h-[500px] rounded-3xl overflow-hidden shadow-2xl relative"
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c" 
-              alt="Layanan Arsitektur" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-6 left-6 w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-              <Building2 className="text-primary-600" size={28} />
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-            className="w-full md:w-1/2"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6">Arsitektur</h2>
-            <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-              Kami merancang bangunan yang tidak hanya memukau secara visual, tetapi juga kokoh, fungsional, dan responsif terhadap lingkungan sekitarnya. Setiap rancangan arsitektur kami adalah perpaduan antara seni dan teknik struktur yang presisi.
-            </p>
-            <ul className="space-y-4">
-              {architectureFeatures.map((feature, idx) => (
-                <li key={idx} className="flex items-center text-neutral-700 font-medium">
-                  <CheckCircle2 className="text-primary-600 mr-4 flex-shrink-0" size={20} />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Layanan 2: Interior (Teks Kiri, Gambar Kanan) */}
-        <div className="flex flex-col md:flex-row items-center gap-16">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-            className="w-full md:w-1/2 order-2 md:order-1"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6">Desain Interior</h2>
-            <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-              Kami percaya bahwa interior yang baik dapat meningkatkan kualitas hidup. Tim kami akan menyulap ruangan Anda menjadi tempat yang mencerminkan kepribadian Anda, sekaligus memaksimalkan kenyamanan dan produktivitas.
-            </p>
-            <ul className="space-y-4">
-              {interiorFeatures.map((feature, idx) => (
-                <li key={idx} className="flex items-center text-neutral-700 font-medium">
-                  <CheckCircle2 className="text-primary-600 mr-4 flex-shrink-0" size={20} />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full md:w-1/2 h-[500px] rounded-3xl overflow-hidden shadow-2xl relative order-1 md:order-2"
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1600210491369-e753d80a41f3" 
-              alt="Desain Interior" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-6 right-6 w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-              <PaintRoller className="text-primary-600" size={28} />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Layanan 3: Konsultasi (Gambar Kiri, Teks Kanan) */}
-        <div className="flex flex-col md:flex-row items-center gap-16">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-full md:w-1/2 h-[500px] rounded-3xl overflow-hidden shadow-2xl relative"
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1503387762-592deb58ef4e" 
-              alt="Layanan Konsultasi" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-6 left-6 w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-              <Users className="text-primary-600" size={28} />
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
-            className="w-full md:w-1/2"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6">Konsultasi & Perencanaan</h2>
-            <p className="text-lg text-neutral-600 leading-relaxed mb-8">
-              Membangun atau merenovasi properti butuh perhitungan matang. Layanan konsultasi kami membantu Anda menghindari pembengkakan biaya, merencanakan ruang secara efisien, dan memastikan regulasi bangunan terpenuhi.
-            </p>
-            <ul className="space-y-4">
-              {consultingFeatures.map((feature, idx) => (
-                <li key={idx} className="flex items-center text-neutral-700 font-medium">
-                  <CheckCircle2 className="text-primary-600 mr-4 flex-shrink-0" size={20} />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-
+        {isLoading ? (
+          <div className="flex flex-col gap-32">
+            {[1, 2].map((i) => (
+              <div key={i} className={`flex flex-col md:flex-row items-center gap-16 animate-pulse`}>
+                <div className={`w-full md:w-1/2 h-[500px] bg-neutral-200 rounded-3xl ${i % 2 === 0 ? 'md:order-2' : ''}`}></div>
+                <div className={`w-full md:w-1/2 ${i % 2 === 0 ? 'md:order-1' : ''}`}>
+                  <div className="h-10 w-3/4 bg-neutral-200 rounded mb-6"></div>
+                  <div className="h-6 w-full bg-neutral-200 rounded mb-2"></div>
+                  <div className="h-6 w-full bg-neutral-200 rounded mb-2"></div>
+                  <div className="h-6 w-2/3 bg-neutral-200 rounded mb-8"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center text-red-500 py-20">Gagal memuat layanan.</div>
+        ) : services.length === 0 ? (
+          <div className="text-center text-neutral-500 py-20">Belum ada layanan.</div>
+        ) : (
+          services.map((service, index) => {
+            const isEven = index % 2 !== 0;
+            return (
+              <div key={service.id} className="flex flex-col md:flex-row items-center gap-16">
+                <motion.div 
+                  initial={{ opacity: 0, x: isEven ? 50 : -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  className={`w-full md:w-1/2 h-[500px] rounded-3xl overflow-hidden shadow-2xl relative ${isEven ? 'order-1 md:order-2' : ''}`}
+                >
+                  {/* Gunakan random placeholder image berdasarkan index jika tidak ada imageUrl */}
+                  <img 
+                    src={service.imageUrl || `https://images.unsplash.com/photo-${1600585154340 + index}-be6161a56a0c?w=800`} 
+                    alt={service.title} 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className={`absolute top-6 ${isEven ? 'right-6' : 'left-6'} w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg`}>
+                    {service.iconName ? (
+                      <IconRenderer name={service.iconName} className="text-primary-600 w-7 h-7" />
+                    ) : (
+                      <LucideIcons.CheckCircle className="text-primary-600 w-7 h-7" />
+                    )}
+                  </div>
+                </motion.div>
+                
+                <motion.div 
+                  initial={{ opacity: 0, x: isEven ? -50 : 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
+                  className={`w-full md:w-1/2 ${isEven ? 'order-2 md:order-1' : ''}`}
+                >
+                  <h2 className="text-4xl md:text-5xl font-bold text-neutral-900 mb-6">{service.title}</h2>
+                  <p className="text-lg text-neutral-600 leading-relaxed mb-8">
+                    {service.description}
+                  </p>
+                </motion.div>
+              </div>
+            );
+          })
+        )}
       </main>
 
       {/* --- PROSES KERJA KAMI --- */}
@@ -225,7 +156,6 @@ export default function ServicesPage() {
             </h2>
           </div>
 
-          {/* Mengurangi gap sedikit agar card bisa lebih lebar, persis seperti Layanan Kami */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {workProcesses.map((process, index) => (
               <motion.div 
@@ -234,10 +164,8 @@ export default function ServicesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.15 }}
-                // PERUBAHAN: Ubah ke rata kiri (items-start text-left), tambah padding (p-10), dan set tinggi minimal (min-h-[320px])
                 className="flex flex-col items-start text-left p-10 bg-neutral-50 rounded-3xl border border-neutral-100 hover:shadow-arch-md hover:-translate-y-1 transition-all duration-300 group h-full min-h-[320px]"
               >
-                {/* PERUBAHAN: Menghapus kotak putih, mengubah ikon jadi polos sesuai style Layanan Kami */}
                 <div className="text-primary-600 mb-8 group-hover:scale-110 origin-left transition-transform duration-300">
                   {process.icon}
                 </div>
@@ -251,9 +179,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* --- CTA SECTION --- */}
       <CtaSection />
-      
       <Footer />
     </div>
   );

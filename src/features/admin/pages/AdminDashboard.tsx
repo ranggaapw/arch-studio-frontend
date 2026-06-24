@@ -1,39 +1,54 @@
-import { useState } from 'react';
-import { LayoutDashboard, Home, Briefcase, FolderOpen, Info, LogOut, Edit2, X, Save, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LayoutDashboard, Home, Briefcase, FolderOpen, Info, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// --- MOCK DATA SEMENTARA ---
-const initialProjects = [
-  { id: 1, title: 'Modern Minimalist House', description: 'Desain rumah minimalis di pusat kota.', imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500' },
-  { id: 2, title: 'Urban Coffee Shop', description: 'Renovasi interior kedai kopi bergaya industrial.', imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=500' },
-];
+import HeroBannerManager from '../components/HeroBannerManager';
+import ServiceManager from '../components/ServiceManager';
+import PortfolioManager from '../components/PortfolioManager';
+import AboutManager from '../components/AboutManager';
+import MessageManager from '../components/MessageManager';
+import { projectService } from '../../../services/projectService';
+import { serviceService } from '../../../services/serviceService';
+import { messageService } from '../../../services/messageService';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  // --- STATE MANAGEMENT ---
   // Menu yang tersedia: 'dashboard' | 'home' | 'services' | 'portfolio' | 'about'
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Dashboard Stats
+  const [stats, setStats] = useState({ projects: 0, services: 0, messages: 0 });
 
-  // State untuk Portofolio
-  const [projects, setProjects] = useState(initialProjects);
-  const [editingProject, setEditingProject] = useState<any>(null);
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      const fetchStats = async () => {
+        try {
+          const [projectsRes, servicesRes, messagesRes] = await Promise.all([
+            projectService.getProjects(),
+            serviceService.getServices(),
+            messageService.getMessages()
+          ]);
+          setStats({
+            projects: projectsRes.data.length,
+            services: servicesRes.data.length,
+            messages: messagesRes.data.filter(m => !m.isRead).length
+          });
+        } catch (error) {
+          console.error("Failed to fetch stats", error);
+        }
+      };
+      fetchStats();
+    }
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('auth_token');
     navigate('/');
   };
 
-  // Fungsi helper untuk ganti tab dengan rapi
   const switchTab = (tabName: string) => {
     setActiveTab(tabName);
-    setEditingProject(null); // Reset form jika ada yang sedang terbuka
-  };
-
-  const handleSaveProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    setProjects(projects.map(p => p.id === editingProject.id ? editingProject : p));
-    setEditingProject(null);
   };
 
   return (
@@ -77,6 +92,21 @@ export default function AdminDashboard() {
             >
               <Info size={20} /> Tentang Kami
             </button>
+            <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 mt-8 px-4 pt-4 border-t border-neutral-100">Komunikasi</p>
+            <button
+              onClick={() => switchTab('messages')}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors cursor-pointer ${activeTab === 'messages' ? 'bg-primary-50 text-primary-600 font-bold' : 'text-neutral-600 hover:bg-neutral-50'}`}
+            >
+              <div className="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                Pesan Masuk
+              </div>
+              {stats.messages > 0 && (
+                <span className="bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {stats.messages}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -105,9 +135,9 @@ export default function AdminDashboard() {
             </header>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                { title: 'Total Portofolio', value: projects.length.toString() },
-                { title: 'Total Layanan', value: '4' },
-                { title: 'Pesan Masuk', value: '12' }
+                { title: 'Total Portofolio', value: stats.projects.toString() },
+                { title: 'Total Layanan', value: stats.services.toString() },
+                { title: 'Pesan Baru', value: stats.messages.toString() }
               ].map((stat, i) => (
                 <div key={i} className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
                   <h3 className="text-neutral-500 text-sm mb-2">{stat.title}</h3>
@@ -118,160 +148,51 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* VIEW: HOME BANNER (Contoh Struktur) */}
+        {/* VIEW: HOME BANNER */}
         {activeTab === 'home' && (
           <div className="animate-in fade-in duration-300">
             <header className="mb-8">
               <h2 className="text-2xl font-bold text-neutral-900">Kelola Home Banner</h2>
-              <p className="text-neutral-500">Ubah teks utama (Eksplorasi Ruang dan Estetika...) yang tampil di halaman depan.</p>
+              <p className="text-neutral-500">Ubah teks utama dan gambar latar yang tampil di halaman depan.</p>
             </header>
-            <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm w-full">
-              <p className="text-neutral-400 italic mb-4">Form CRUD Home Banner akan diletakkan di sini...</p>
-              {/* Tempat kamu membuat form update teks hero */}
-            </div>
+            <HeroBannerManager />
           </div>
         )}
 
-        {/* VIEW: LAYANAN (Contoh Struktur) */}
+        {/* VIEW: LAYANAN */}
         {activeTab === 'services' && (
           <div className="animate-in fade-in duration-300">
-            <header className="mb-8 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-neutral-900">Kelola Layanan</h2>
-                <p className="text-neutral-500">Daftar layanan arsitektur yang ditawarkan Arch Studio.</p>
-              </div>
-              <button className="px-4 py-2 bg-primary-900 text-white rounded-lg flex items-center gap-2 hover:bg-primary-800 transition-colors cursor-pointer">
-                <Plus size={18} /> Tambah Layanan
-              </button>
-            </header>
-            <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm w-full">
-              <p className="text-neutral-400 italic">Tabel data Layanan akan diletakkan di sini...</p>
-            </div>
+            <ServiceManager />
           </div>
         )}
 
-        {/* VIEW: TENTANG KAMI (Contoh Struktur) */}
+        {/* VIEW: TENTANG KAMI */}
         {activeTab === 'about' && (
           <div className="animate-in fade-in duration-300">
             <header className="mb-8">
               <h2 className="text-2xl font-bold text-neutral-900">Kelola Tentang Kami</h2>
               <p className="text-neutral-500">Ubah profil perusahaan dan visi misi Arch Studio.</p>
             </header>
-            <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm w-full">
-              <p className="text-neutral-400 italic mb-4">Form Editor Tentang Kami akan diletakkan di sini...</p>
-            </div>
+            <AboutManager />
           </div>
         )}
 
-        {/* VIEW: PORTOFOLIO (Sudah Jadi) */}
+        {/* VIEW: PORTOFOLIO */}
         {activeTab === 'portfolio' && (
           <div className="animate-in fade-in duration-300">
-            <header className="mb-8 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-neutral-900">
-                  {editingProject ? 'Edit Portofolio' : 'Kelola Portofolio'}
-                </h2>
-                <p className="text-neutral-500">
-                  {editingProject ? 'Ubah detail proyek.' : 'Daftar proyek yang tampil di halaman portofolio.'}
-                </p>
-              </div>
-              {!editingProject && (
-                <button className="px-4 py-2 bg-primary-900 text-white rounded-lg flex items-center gap-2 hover:bg-primary-800 transition-colors cursor-pointer">
-                  <Plus size={18} /> Tambah Proyek
-                </button>
-              )}
-            </header>
-
-            {/* FORM EDIT PORTOFOLIO */}
-            {editingProject ? (
-              <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-sm w-full">
-                <form onSubmit={handleSaveProject} className="space-y-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">Project Title</label>
-                      <input
-                        type="text"
-                        required
-                        value={editingProject.title}
-                        onChange={(e) => setEditingProject({ ...editingProject, title: e.target.value })}
-                        className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">Image URL (Sementara)</label>
-                      <input
-                        type="text"
-                        required
-                        value={editingProject.imageUrl}
-                        onChange={(e) => setEditingProject({ ...editingProject, imageUrl: e.target.value })}
-                        className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
-                      <textarea
-                        required
-                        rows={8}
-                        value={editingProject.description}
-                        onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
-                        className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none resize-y"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-4 pt-6 mt-4 border-t border-neutral-100">
-                    <button
-                      type="button"
-                      onClick={() => setEditingProject(null)}
-                      className="px-6 py-3 flex items-center gap-2 text-neutral-600 font-medium hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
-                    >
-                      <X size={20} /> Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-3 flex items-center gap-2 bg-primary-900 text-white font-medium hover:bg-primary-800 rounded-xl transition-colors cursor-pointer"
-                    >
-                      <Save size={20} /> Save Changes
-                    </button>
-                  </div>
-                </form>
-              </div>
-            ) : (
-              /* TABEL DATA PORTOFOLIO */
-              <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden w-full">
-                <table className="w-full text-left">
-                  <thead className="bg-neutral-50 border-b border-neutral-200">
-                    <tr>
-                      <th className="px-6 py-4 text-sm font-medium text-neutral-500">Image</th>
-                      <th className="px-6 py-4 text-sm font-medium text-neutral-500">Project Info</th>
-                      <th className="px-6 py-4 text-sm font-medium text-neutral-500 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-100">
-                    {projects.map((project) => (
-                      <tr key={project.id} className="hover:bg-neutral-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <img src={project.imageUrl} alt={project.title} className="w-20 h-14 object-cover rounded-lg border border-neutral-200" />
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="font-medium text-neutral-900">{project.title}</p>
-                          <p className="text-sm text-neutral-500 line-clamp-1">{project.description}</p>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => setEditingProject(project)}
-                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer"
-                          >
-                            <Edit2 size={16} /> Edit
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <PortfolioManager />
           </div>
         )}
+
+        {/* VIEW: PESAN MASUK */}
+        {activeTab === 'messages' && (
+          <div className="animate-in fade-in duration-300">
+            <MessageManager onMessageRead={() => {
+              setStats(prev => ({ ...prev, messages: Math.max(0, prev.messages - 1) }));
+            }} />
+          </div>
+        )}
+
       </main>
     </div>
   );

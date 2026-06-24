@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
+import ContactSection from '../components/common/ContactSection';
 import {Mouse } from 'lucide-react';
 import CtaSection from '../components/common/CtaSection';
+import { useQuery } from '@tanstack/react-query';
+import { aboutService } from '../../../services/aboutService';
 
 // Data untuk Why Choose Us
 const reasons = [
@@ -35,6 +38,13 @@ const featuredImages = [
 export default function AboutPage() {
   // State manual untuk scroll tracking (seperti yang kita gunakan di PortfolioPage)
   const [scrollPos, setScrollPos] = useState(0);
+
+  const { data: aboutResponse, isLoading } = useQuery({
+    queryKey: ['about'],
+    queryFn: () => aboutService.getAboutInfo()
+  });
+  
+  const about = aboutResponse?.data;
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -75,9 +85,16 @@ export default function AboutPage() {
         <h1 className="text-5xl md:text-7xl font-bold text-neutral-900 mb-4 text-center tracking-tight">
           We are <span className="text-primary-600">Arch Studio</span>
         </h1>
-        <p className="text-xl md:text-2xl text-neutral-500 text-center mb-24">
-          Perjalanan Kami Terus <span className="text-primary-500">Berkembang</span>
-        </p>
+        <div className="text-xl md:text-2xl text-neutral-500 text-center mb-24 max-w-4xl mx-auto">
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-2">
+              <span className="animate-pulse bg-neutral-200 h-6 w-3/4 block rounded"></span>
+              <span className="animate-pulse bg-neutral-200 h-6 w-2/4 block rounded"></span>
+            </div>
+          ) : (
+            <p>{about?.description || <>Perjalanan Kami Terus <span className="text-primary-500">Berkembang</span></>}</p>
+          )}
+        </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-24 text-center">
@@ -122,7 +139,7 @@ export default function AboutPage() {
             className="text-xl md:text-2xl text-neutral-500 leading-relaxed w-full md:w-2/3 transition-all duration-300 ease-out"
             style={{ transform: `translateX(${fadeVision < 1 ? 50 - (fadeVision * 50) : 0}px)`, opacity: fadeVision }}
           >
-            Menjadi pelopor biro arsitektur yang menghadirkan ruang hidup berkelanjutan, memadukan estetika alam dan inovasi teknologi untuk masa depan yang lebih baik.
+            {isLoading ? <span className="animate-pulse bg-neutral-200 h-10 w-full block rounded"></span> : about?.vision || 'Menjadi pelopor biro arsitektur yang menghadirkan ruang hidup berkelanjutan, memadukan estetika alam dan inovasi teknologi untuk masa depan yang lebih baik.'}
           </p>
         </div>
 
@@ -138,7 +155,7 @@ export default function AboutPage() {
             className="text-xl md:text-2xl text-neutral-500 leading-relaxed w-full md:w-2/3 transition-all duration-300 ease-out md:order-1 text-left md:text-right"
             style={{ transform: `translateX(${fadeMission < 1 ? -50 + (fadeMission * 50) : 0}px)`, opacity: fadeMission }}
           >
-            Berinvestasi pada desainer berbakat, menerapkan standar konstruksi tertinggi, dan bersama-sama merancang ruang yang berfokus pada kenyamanan dan kebutuhan fungsional klien kami.
+            {isLoading ? <span className="animate-pulse bg-neutral-200 h-10 w-full block rounded"></span> : about?.mission || 'Berinvestasi pada desainer berbakat, menerapkan standar konstruksi tertinggi, dan bersama-sama merancang ruang yang berfokus pada kenyamanan dan kebutuhan fungsional klien kami.'}
           </p>
         </div>
       </section>
@@ -195,7 +212,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-     <CtaSection />
+      <CtaSection />
+      <ContactSection />
       <Footer />
     </div>
   );

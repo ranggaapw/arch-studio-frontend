@@ -4,57 +4,24 @@ import Footer from '../components/common/Footer';
 import { ArrowRight, X, Mouse } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CtaSection from '../components/common/CtaSection';
-
-const portfolioItems = [
-  { 
-    title: 'Villa Modern', 
-    category: 'Architecture', 
-    img: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233',
-    description: 'Sebuah karya arsitektur yang memadukan material beton ekspos dengan elemen alam. Villa ini dirancang untuk memaksimalkan sirkulasi udara dan cahaya alami, menciptakan hunian yang sejuk dan hemat energi.'
-  },
-  { 
-    title: 'Kantor Minimalis', 
-    category: 'Interior', 
-    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c',
-    description: 'Desain interior ruang kerja yang mengutamakan fokus dan produktivitas. Menggunakan palet warna monokrom dengan sentuhan kayu untuk memberikan kesan hangat namun tetap profesional.'
-  },
-  { 
-    title: 'Apartemen Urban', 
-    category: 'Interior', 
-    img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688',
-    description: 'Optimalisasi ruang pada apartemen di tengah kota. Desain ini menggunakan furnitur multifungsi dan partisi kaca untuk membuat ruangan sempit terasa lebih luas dan modern.'
-  },
-  { 
-    title: 'Modern Living Room', 
-    category: 'Interior', 
-    img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0',
-    description: 'Ruang keluarga dengan konsep open-space yang terhubung langsung dengan taman dalam. Cocok untuk bersantai bersama keluarga dengan suasana yang tenang.'
-  },
-  { 
-    title: 'Home Office Space', 
-    category: 'Architecture', 
-    img: 'https://images.unsplash.com/photo-1593062096033-9a26b09da705',
-    description: 'Ekstensi bangunan rumah yang dikhususkan untuk ruang kerja privat. Dirancang dengan kedap suara yang baik dan pemandangan menghadap langsung ke area hijau.'
-  },
-  { 
-    title: 'Tropical Terrace', 
-    category: 'Consulting', 
-    img: 'https://images.unsplash.com/photo-1505577058444-a3dab90d4253',
-    description: 'Konsultasi tata ruang luar (outdoor) yang memadukan elemen teras tropis. Penggunaan material tahan cuaca dan pemilihan vegetasi yang tepat membuat area ini mudah dirawat.'
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { projectService } from '../../../services/projectService';
+import type { Project } from '../../../types';
 
 export default function PortfolioPage() {
-  const [selectedItem, setSelectedItem] = useState<typeof portfolioItems[0] | null>(null);
-  
-  // State untuk menyimpan nilai scroll secara manual
+  const [selectedItem, setSelectedItem] = useState<Project | null>(null);
   const [scrollPos, setScrollPos] = useState(0);
 
-  // Fungsi sakti untuk melacak scroll dari window maupun root div
+  const { data: projectsResponse, isLoading, isError } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getProjects()
+  });
+
+  const projects = projectsResponse?.data || [];
+
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const target = e.target as Document | HTMLElement;
-      // Ambil nilai scroll, entah itu dari window, document, atau elemen spesifik
       const currentScroll = 
         window.scrollY || 
         (target as HTMLElement).scrollTop || 
@@ -63,10 +30,8 @@ export default function PortfolioPage() {
       setScrollPos(currentScroll);
     };
 
-    // Pantau scroll di window utama
     window.addEventListener('scroll', handleScroll, { passive: true });
     
-    // Fallback: Pantau juga scroll di elemen #root (kalau setup Tailwind kamu pakai overflow di root)
     const rootElement = document.getElementById('root');
     if (rootElement) {
       rootElement.addEventListener('scroll', handleScroll, { passive: true });
@@ -80,12 +45,10 @@ export default function PortfolioPage() {
     };
   }, []);
 
-  // Hitung manual pergerakan animasi berdasarkan pixel scroll
-  const moveLeft = scrollPos * 0.9;  // Semakin besar scroll, Vision semakin ke kiri
-  const moveRight = scrollPos * 0.9; // Semakin besar scroll, Reality semakin ke kanan
-  const fadeOut = Math.max(1 - scrollPos / 300, 0); // Opacity menurun dari 1 ke 0
+  const moveLeft = scrollPos * 0.9;
+  const moveRight = scrollPos * 0.9;
+  const fadeOut = Math.max(1 - scrollPos / 300, 0);
 
-  // Mengunci scroll layar utama saat pop-up terbuka
   useEffect(() => {
     if (selectedItem) {
       document.body.style.overflow = 'hidden';
@@ -99,20 +62,15 @@ export default function PortfolioPage() {
     <div className="min-h-screen bg-neutral-50 relative overflow-x-hidden">
       <Navbar />
       
-      {/* --- HERO SECTION ANIMASI MANUAL --- */}
+      {/* --- HERO SECTION --- */}
       <section className="w-full h-[calc(100vh-80px)] flex flex-col items-center justify-center relative bg-neutral-50 px-8 pb-10">
-        
-        {/* Container Teks Utama */}
         <div className="flex flex-col md:flex-row items-center justify-center w-full overflow-visible mb-6">
-          {/* Teks Kiri (Vision) - Menggunakan tag <h1> biasa dengan style transform manual */}
           <h1 
             style={{ transform: `translateX(-${moveLeft}px)` }}
             className="text-[80px] md:text-[120px] lg:text-[160px] font-bold text-primary-500 leading-none tracking-tighter transition-transform duration-75 ease-out"
           >
             Vision
           </h1>
-          
-          {/* Teks Kanan (Meets Reality) */}
           <h1 
             style={{ transform: `translateX(${moveRight}px)` }}
             className="text-[80px] md:text-[120px] lg:text-[160px] font-bold text-neutral-800 leading-none tracking-tighter md:ml-6 transition-transform duration-75 ease-out"
@@ -121,7 +79,6 @@ export default function PortfolioPage() {
           </h1>
         </div>
 
-        {/* Teks Sub-judul */}
         <p 
           style={{ opacity: fadeOut }}
           className="text-xl md:text-2xl text-neutral-400 text-center mb-16 z-10 transition-opacity duration-75 ease-out"
@@ -129,7 +86,6 @@ export default function PortfolioPage() {
           Membawa visi arsitektur dan interior Anda menjadi kenyataan.
         </p>
 
-        {/* Scroll Down Indicator */}
         <div className="absolute bottom-10 flex flex-col items-center gap-4 opacity-60 animate-bounce">
           <span 
             className="text-xs uppercase tracking-[0.3em] text-neutral-500" 
@@ -143,28 +99,46 @@ export default function PortfolioPage() {
       
       {/* --- MAIN PORTFOLIO GRID --- */}
       <main className="max-w-7xl mx-auto px-8 pb-20 pt-10 relative z-10 bg-neutral-50">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-          {portfolioItems.map((item, index) => (
-            <div key={index} className="bg-white rounded-2xl overflow-hidden shadow-arch-sm hover:shadow-arch-lg transition-shadow duration-300">
-              <img src={item.img} alt={item.title} className="w-full h-64 object-cover" />
-              <div className="p-6">
-                <span className="text-primary-600 text-body-sm-bold uppercase tracking-wider">{item.category}</span>
-                <h3 className="text-h5-bold text-neutral-900 mt-2 mb-4">{item.title}</h3>
-                
-                <button 
-                  onClick={() => setSelectedItem(item)}
-                  className="flex items-center text-primary-600 font-bold group cursor-pointer"
-                >
-                  Lihat Rincian <ArrowRight size={18} className="ml-2 group-hover:ml-4 transition-all" />
-                </button>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-arch-sm animate-pulse">
+                <div className="w-full h-64 bg-neutral-200"></div>
+                <div className="p-6">
+                  <div className="h-4 w-1/3 bg-neutral-200 rounded mb-2"></div>
+                  <div className="h-6 w-3/4 bg-neutral-200 rounded mb-4"></div>
+                  <div className="h-4 w-1/4 bg-neutral-200 rounded"></div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center py-20 text-red-500">Failed to load projects.</div>
+        ) : projects.length === 0 ? (
+          <div className="text-center py-20 text-neutral-500">Belum ada proyek yang ditambahkan.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {projects.map((item) => (
+              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-arch-sm hover:shadow-arch-lg transition-shadow duration-300">
+                <img src={item.imageUrl} alt={item.title} className="w-full h-64 object-cover" />
+                <div className="p-6">
+                  <span className="text-primary-600 text-body-sm-bold uppercase tracking-wider">Project</span>
+                  <h3 className="text-h5-bold text-neutral-900 mt-2 mb-4">{item.title}</h3>
+                  
+                  <button 
+                    onClick={() => setSelectedItem(item)}
+                    className="flex items-center text-primary-600 font-bold group cursor-pointer"
+                  >
+                    Lihat Rincian <ArrowRight size={18} className="ml-2 group-hover:ml-4 transition-all" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
 
       <CtaSection />
-    
       <Footer />
 
       {/* --- POP-UP MODAL --- */}
@@ -195,11 +169,11 @@ export default function PortfolioPage() {
 
               <div className="flex flex-col md:flex-row h-full md:max-h-[600px]">
                 <div className="w-full md:w-1/2 h-64 md:h-auto">
-                  <img src={selectedItem.img} alt={selectedItem.title} className="w-full h-full object-cover" />
+                  <img src={selectedItem.imageUrl} alt={selectedItem.title} className="w-full h-full object-cover" />
                 </div>
                 <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
                   <span className="inline-block px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-body-sm-bold uppercase tracking-wider w-max mb-4">
-                    {selectedItem.category}
+                    Project
                   </span>
                   <h2 className="text-h3-bold text-neutral-900 mb-6">{selectedItem.title}</h2>
                   <p className="text-body-lg-regular text-neutral-600 leading-relaxed mb-8">

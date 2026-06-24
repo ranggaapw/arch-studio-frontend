@@ -1,79 +1,72 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const projects = [
-  { title: 'Modern Living Room', category: 'Interior', img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0' },
-  { title: 'Minimalist Dining', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6', category: 'Interior' },
-  { title: 'Luxury Closet', img: 'https://images.unsplash.com/photo-1595428774223-ef52624120f0', category: 'Interior' },
-  { title: 'Villa Modern', img: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233', category: 'Architecture' },
-  { title: 'Home Office Space', img: 'https://images.unsplash.com/photo-1593062096033-9a26b09da705', category: 'Architecture' },
-  { title: 'Tropical Terrace', img: 'https://images.unsplash.com/photo-1505577058444-a3dab90d4253', category: 'Consulting' },
-];
-
-const categories = ['All', 'Architecture', 'Interior', 'Consulting'];
+import { useQuery } from '@tanstack/react-query';
+import { projectService } from '../../../../services/projectService';
 
 export default function ProjectCarousel() {
-  const [activeCategory, setActiveCategory] = useState('All');
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
+
+  const { data: projectsResponse, isLoading, isError } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getProjects()
+  });
+
+  const projects = projectsResponse?.data || [];
 
   const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
 
-  const filteredProjects = activeCategory === 'All' 
-    ? projects 
-    : projects.filter(p => p.category === activeCategory);
-
   return (
     <section className="w-full py-20 bg-neutral-50">
       <div className="max-w-7xl mx-auto px-8">
-        <h2 className="text-h3-bold text-neutral-900 mb-8 text-center">Desain Terbaru Kami</h2>
+        <h2 className="text-h3-bold text-neutral-900 mb-12 text-center">Desain Terbaru Kami</h2>
 
-        {/* Filter Kategori */}
-        <div className="flex justify-center gap-4 mb-12">
-          {categories.map((cat) => (
-            <button 
-              key={cat} 
-              onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2 rounded-full transition-colors ${
-                activeCategory === cat 
-                  ? 'bg-primary-600 text-white' 
-                  : 'bg-white border border-neutral-200 text-neutral-600 hover:border-primary-600'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-        
         {/* Carousel Container */}
         <div className="relative flex items-center">
           <button 
             onClick={scrollPrev} 
-            className="absolute -left-16 bg-white p-3 rounded-full shadow-arch-lg hover:bg-primary-50 transition-colors z-10 text-neutral-900"
+            className="absolute -left-4 md:-left-16 bg-white p-3 rounded-full shadow-arch-lg hover:bg-primary-50 transition-colors z-10 text-neutral-900 cursor-pointer"
           >
             <ChevronLeft size={24} />
           </button>
 
           <div className="overflow-hidden w-full" ref={emblaRef}>
             <div className="flex -ml-6">
-              {filteredProjects.map((project, index) => (
-                <div key={index} className="flex-[0_0_100%] md:flex-[0_0_33.333%] pl-6">
-                  <div className="bg-white rounded-2xl overflow-hidden shadow-arch-lg h-full transition-transform hover:-translate-y-2">
-                    <img src={project.img} alt={project.title} className="w-full h-80 object-cover" draggable="false" />
-                    <div className="p-6">
-                      <span className="text-body-sm-medium text-primary-600">{project.category}</span>
-                      <h3 className="text-h5-bold text-neutral-900 mt-1">{project.title}</h3>
+              {isLoading ? (
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="flex-[0_0_100%] md:flex-[0_0_33.333%] pl-6">
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-arch-lg h-80 animate-pulse">
+                       <div className="w-full h-56 bg-neutral-200"></div>
+                       <div className="p-6">
+                         <div className="h-6 w-3/4 bg-neutral-200 rounded"></div>
+                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : isError ? (
+                <div className="w-full text-center py-10 text-red-500">Failed to load projects</div>
+              ) : projects.length === 0 ? (
+                <div className="w-full text-center py-10 text-neutral-500">Belum ada proyek yang ditambahkan.</div>
+              ) : (
+                projects.map((project) => (
+                  <div key={project.id} className="flex-[0_0_100%] md:flex-[0_0_33.333%] pl-6">
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-arch-lg h-full transition-transform hover:-translate-y-2">
+                      <img src={project.imageUrl} alt={project.title} className="w-full h-80 object-cover" draggable="false" />
+                      <div className="p-6">
+                        <span className="text-body-sm-medium text-primary-600">Project</span>
+                        <h3 className="text-h5-bold text-neutral-900 mt-1 line-clamp-1">{project.title}</h3>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
           <button 
             onClick={scrollNext} 
-            className="absolute -right-16 bg-white p-3 rounded-full shadow-arch-lg hover:bg-primary-50 transition-colors z-10 text-neutral-900"
+            className="absolute -right-4 md:-right-16 bg-white p-3 rounded-full shadow-arch-lg hover:bg-primary-50 transition-colors z-10 text-neutral-900 cursor-pointer"
           >
             <ChevronRight size={24} />
           </button>
