@@ -229,7 +229,7 @@ export default function AboutPage() {
         {/* Auto-scrolling Carousel CSS Trick */}
         <div className="relative w-full flex overflow-x-hidden group">
           <div className="flex space-x-8 px-4 animate-marquee whitespace-nowrap group-hover:pause">
-            {(projects.length > 0 ? [...projects, ...projects] : []).map((project, index) => (
+            {(projects.length > 0 ? [...projects, ...projects] : featuredImages.map((img, i) => ({ imageUrl: img, title: `Proyek ${i+1}` }))).map((project, index) => (
               <div key={index} className="inline-block w-80 md:w-96 h-[400px] rounded-2xl overflow-hidden shadow-lg flex-shrink-0 relative">
                 <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">

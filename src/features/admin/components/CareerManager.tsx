@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MapPin, Clock, Briefcase, Loader2, Save, FileText, Image as ImageIcon, Sparkles, Heart } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Briefcase, Loader2, Save, Image as ImageIcon, Sparkles, Heart } from 'lucide-react';
 import { careerService } from '../../../services/careerService';
 import type { JobOpening, CareerPageContent, PotentialItem, CultureItem } from '../../../types';
 
@@ -26,8 +26,59 @@ export default function CareerManager() {
         careerService.getJobOpenings(),
         careerService.getCareerContent()
       ]);
-      setJobs(jobsRes.data);
-      setContent(contentRes.data);
+      setJobs(jobsRes?.data || []);
+      
+      const rawContent = (contentRes?.data || {}) as any;
+      
+      const parseSafe = (val: any, fallback: any) => {
+        if (!val) return fallback;
+        if (typeof val === 'string') {
+          try {
+            return JSON.parse(val);
+          } catch (e) {
+            console.error("Failed to parse JSON", e);
+            return fallback;
+          }
+        }
+        return val;
+      };
+
+      setContent({
+        heroTitle: rawContent.heroTitle || 'Become Part of #MDKteam',
+        heroSubtitle: rawContent.heroSubtitle || 'Bergabung dan Menjadi Inovator',
+        heroBgUrl: rawContent.heroBgUrl || 'https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80',
+        potentials: parseSafe(rawContent.potentials, [
+          {
+            title: 'Growth Opportunities',
+            desc: 'Kesempatan belajar langsung dari pengrajin senior dan desainer interior profesional untuk meningkatkan keahlian Anda.',
+            imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500'
+          },
+          {
+            title: 'People First',
+            desc: 'Lingkungan kerja kekeluargaan yang suportif, aman, dan saling menghargai kontribusi setiap anggota tim.',
+            imgUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500'
+          },
+          {
+            title: 'Inspiring Community',
+            desc: 'Berkolaborasi bersama tim desainer kreatif dan produsen guna melahirkan produk furniture berkualitas tinggi.',
+            imgUrl: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500'
+          }
+        ]),
+        cultures: parseSafe(rawContent.cultures, [
+          {
+            title: 'Teamwork',
+            desc: 'Menyatukan keahlian desain dan presisi pengerjaan kayu guna menghadirkan kualitas produk furniture terbaik bagi klien.'
+          },
+          {
+            title: 'Integrity',
+            desc: 'Membangun kepercayaan melalui kejujuran bahan kayu asli, ketepatan waktu pengiriman, dan transparansi proses workshop.'
+          },
+          {
+            title: 'Innovation',
+            desc: 'Terus bereksperimen dengan metode perakitan modern, efisiensi bahan baku, serta detail konstruksi tahan lama.'
+          }
+        ])
+      });
     } catch (error) {
       console.error('Failed to fetch career data', error);
     } finally {

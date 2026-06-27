@@ -1,9 +1,8 @@
 import type { Project, ApiResponse } from '../types';
-// import axiosClient from '../features/client/api/axiosClient';
+import axiosClient from '../features/client/api/axiosClient';
 
-const defaultMockProjects: Project[] = [
+const defaultProjects: Omit<Project, 'id'>[] = [
   { 
-    id: 1, 
     title: 'Modern Minimalist House', 
     description: 'Desain rumah arsitektur minimalis yang memaksimalkan sirkulasi cahaya alami dan fungsionalitas ruang di pusat perkotaan padat. Menggunakan tata ruang terbuka (open plan) untuk memberikan kesan lapang dan koneksi antar ruang yang harmonis.', 
     imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 
@@ -21,7 +20,6 @@ const defaultMockProjects: Project[] = [
     ]
   },
   { 
-    id: 2, 
     title: 'Urban Coffee Shop', 
     description: 'Renovasi interior kedai kopi modern bergaya industrial kontemporer. Memanfaatkan ekspos struktur dinding semen kasar, material besi hollow, dan aksen kayu pinus hangat untuk menciptakan suasana nyaman, santai, dan estetik bagi para pengunjung.', 
     imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', 
@@ -39,7 +37,6 @@ const defaultMockProjects: Project[] = [
     ]
   },
   { 
-    id: 3, 
     title: 'Luxury Villa Bali', 
     description: 'Desain villa peristirahatan tropis modern yang terintegrasi langsung dengan keindahan alam sekitarnya. Dilengkapi infinity pool luas dengan dek kayu ulin berkualitas tinggi, dinding batu paras Jogja yang elegan, serta sirkulasi udara silang maksimal.', 
     imageUrl: 'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800', 
@@ -58,80 +55,93 @@ const defaultMockProjects: Project[] = [
   },
 ];
 
-const getMockProjects = (): Project[] => {
-  const stored = localStorage.getItem('mockProjects');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored) as Project[];
-      let migrated = false;
-      const updated = parsed.map(p => {
-        const defaultProj = defaultMockProjects.find(d => d.id === p.id);
-        if (defaultProj && (!p.categories || !p.materials || !p.galleryImages || !p.location || !p.year || !p.clientName)) {
-          migrated = true;
-          return {
-            ...p,
-            categories: p.categories || defaultProj.categories,
-            materials: p.materials || defaultProj.materials,
-            location: p.location || defaultProj.location,
-            year: p.year || defaultProj.year,
-            clientName: p.clientName || defaultProj.clientName,
-            galleryImages: p.galleryImages || defaultProj.galleryImages,
-            isFeatured: p.isFeatured !== undefined ? p.isFeatured : defaultProj.isFeatured
-          };
-        }
-        return p;
-      });
-      if (migrated) {
-        localStorage.setItem('mockProjects', JSON.stringify(updated));
-      }
-      return updated;
-    } catch (e) {
-      console.error('Failed to parse mock projects', e);
-    }
-  }
-  return defaultMockProjects;
+const mapProjectFromApi = (apiProj: any): Project => {
+  if (!apiProj) return {} as Project;
+  return {
+    id: apiProj.id,
+    title: apiProj.judul || apiProj.title || '',
+    description: apiProj.deskripsi || apiProj.description || '',
+    imageUrl: apiProj.image_url || apiProj.imageUrl || '',
+    isFeatured: apiProj.is_recommended !== undefined ? apiProj.is_recommended : (apiProj.isFeatured !== undefined ? apiProj.isFeatured : false),
+    categories: apiProj.categories || [],
+    materials: apiProj.materials || '',
+    location: apiProj.location || '',
+    year: apiProj.year || 2024,
+    clientName: apiProj.clientName || '',
+    galleryImages: apiProj.galleryImages || []
+  };
 };
 
-const saveMockProjects = (data: Project[]) => {
-  localStorage.setItem('mockProjects', JSON.stringify(data));
+const mapProjectToApi = (p: any) => {
+  return {
+    id: p.id,
+    judul: p.title,
+    deskripsi: p.description,
+    image_url: p.imageUrl,
+    is_recommended: p.isFeatured,
+    categories: p.categories || [],
+    materials: p.materials || '',
+    location: p.location || '',
+    year: p.year || 2024,
+    clientName: p.clientName || '',
+    galleryImages: p.galleryImages || []
+  };
 };
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const projectService = {
   getProjects: async (): Promise<ApiResponse<Project[]>> => {
-    // const response = await axiosClient.get<ApiResponse<Project[]>>('/api/projects');
-    // return response.data;
-    await delay(500);
-    return { data: getMockProjects(), message: 'Success', status: 200 };
+    try {
+      const response = await axiosClient.get('/api/projects');
+      const rawList = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      
+      if (rawList.length === 0) {
+        console.log("Seeding default projects to DB...");
+        const seededList: Project[] = [];
+        for (const p of defaultProjects) {
+          const apiPayload = mapProjectToApi(p);
+          const res = await axiosClient.post('/api/projects', apiPayload);
+          const resData = res.data?.data || res.data;
+          seededList.push(mapProjectFromApi(resData));
+        }
+        return { data: seededList, message: 'Seeded successfully', status: 200 };
+      }
+      
+      const mappedList = rawList.map(mapProjectFromApi);
+      return { data: mappedList, message: 'Success', status: 200 };
+    } catch (e) {
+      console.warn("API empty, seeding default projects...", e);
+      try {
+        const seededList: Project[] = [];
+        for (const p of defaultProjects) {
+          const apiPayload = mapProjectToApi(p);
+          const res = await axiosClient.post('/api/projects', apiPayload);
+          const resData = res.data?.data || res.data;
+          seededList.push(mapProjectFromApi(resData));
+        }
+        return { data: seededList, message: 'Seeded fallback', status: 200 };
+      } catch (err) {
+        const fallbackList = defaultProjects.map((p, idx) => ({ ...p, id: idx + 1 }));
+        return { data: fallbackList, message: 'Fallback list', status: 200 };
+      }
+    }
   },
 
   createProject: async (data: Omit<Project, 'id'>): Promise<ApiResponse<Project>> => {
-    // const response = await axiosClient.post<ApiResponse<Project>>('/api/projects', data);
-    // return response.data;
-    await delay(500);
-    const newProject = { ...data, id: Date.now() };
-    const current = getMockProjects();
-    current.push(newProject);
-    saveMockProjects(current);
-    return { data: newProject, message: 'Created successfully', status: 201 };
+    const apiPayload = mapProjectToApi(data);
+    const response = await axiosClient.post('/api/projects', apiPayload);
+    const resData = response.data?.data || response.data;
+    return { data: mapProjectFromApi(resData), message: 'Created successfully', status: 201 };
   },
 
   updateProject: async (id: number, data: Project): Promise<ApiResponse<Project>> => {
-    // const response = await axiosClient.put<ApiResponse<Project>>(`/api/projects/${id}`, data);
-    // return response.data;
-    await delay(500);
-    const updated = getMockProjects().map(p => p.id === id ? data : p);
-    saveMockProjects(updated);
-    return { data, message: 'Updated successfully', status: 200 };
+    const apiPayload = mapProjectToApi(data);
+    const response = await axiosClient.put(`/api/projects/${id}`, apiPayload);
+    const resData = response.data?.data || response.data;
+    return { data: mapProjectFromApi(resData), message: 'Updated successfully', status: 200 };
   },
 
   deleteProject: async (id: number): Promise<ApiResponse<null>> => {
-    // const response = await axiosClient.delete<ApiResponse<null>>(`/api/projects/${id}`);
-    // return response.data;
-    await delay(500);
-    const filtered = getMockProjects().filter(p => p.id !== id);
-    saveMockProjects(filtered);
+    await axiosClient.delete(`/api/projects/${id}`);
     return { data: null, message: 'Deleted successfully', status: 200 };
   }
 };

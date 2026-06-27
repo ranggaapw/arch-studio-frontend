@@ -1,26 +1,39 @@
-import axios from 'axios';
+import axiosClient from '../features/client/api/axiosClient';
 import type { ApiResponse, Message } from '../types';
-
-const API_URL = 'http://localhost:8080/api/messages';
 
 export const messageService = {
   getMessages: async (): Promise<ApiResponse<Message[]>> => {
-    const response = await axios.get(API_URL);
-    return response.data;
+    try {
+      const response = await axiosClient.get('/api/messages');
+      const arrayData = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      return { data: arrayData, message: 'Success', status: 200 };
+    } catch (e) {
+      console.error("Failed to fetch messages", e);
+      return { data: [], message: 'Error', status: 500 };
+    }
   },
 
   sendMessage: async (message: Omit<Message, 'id' | 'createdAt'>): Promise<ApiResponse<Message>> => {
-    const response = await axios.post(API_URL, message);
-    return response.data;
+    const response = await axiosClient.post('/api/messages', message);
+    const data = response.data?.data || response.data;
+    return { data, message: 'Success', status: 201 };
   },
 
   deleteMessage: async (id: number): Promise<ApiResponse<void>> => {
-    const response = await axios.delete(`${API_URL}/${id}`);
-    return response.data;
+    await axiosClient.delete(`/api/messages/${id}`);
+    return { data: undefined, message: 'Success', status: 200 };
   },
 
   markAsRead: async (id: number): Promise<ApiResponse<Message>> => {
-    const response = await axios.patch(`${API_URL}/${id}/read`);
-    return response.data;
+    // Some backend implementations use PUT or PATCH for read status, let's fallback if one fails
+    try {
+      const response = await axiosClient.patch(`/api/messages/${id}/read`);
+      const data = response.data?.data || response.data;
+      return { data, message: 'Success', status: 200 };
+    } catch (err) {
+      const response = await axiosClient.put(`/api/messages/${id}/read`);
+      const data = response.data?.data || response.data;
+      return { data, message: 'Success', status: 200 };
+    }
   }
 };

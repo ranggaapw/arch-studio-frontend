@@ -1,22 +1,20 @@
 import type { JobOpening, CareerPageContent, ApiResponse } from '../types';
+import axiosClient from '../features/client/api/axiosClient';
 
-const defaultJobOpenings: JobOpening[] = [
+const defaultJobOpenings: Omit<JobOpening, 'id'>[] = [
   {
-    id: 1,
     title: 'Tukang Kayu / Woodworker Senior',
     type: 'Full-Time',
     loc: 'Bogor, ID',
     desc: 'Berpengalaman dalam pembuatan furniture custom minimalis dan klasik (Multiplex, HPL, Solid Wood).'
   },
   {
-    id: 2,
     title: 'Drafter & Estimator Furniture',
     type: 'Full-Time',
     loc: 'Bogor, ID',
     desc: 'Mampu memproses desain 3D menjadi gambar kerja CAD (2D) detail dan menyusun RAB produksi.'
   },
   {
-    id: 3,
     title: 'Helper Workshop / Finishing Operator',
     type: 'Full-Time',
     loc: 'Bogor, ID',
@@ -61,94 +59,73 @@ const defaultCareerContent: CareerPageContent = {
   ]
 };
 
-const getMockJobOpenings = (): JobOpening[] => {
-  const stored = localStorage.getItem('mockJobOpenings');
-  if (stored) {
-    try {
-      return JSON.parse(stored) as JobOpening[];
-    } catch (e) {
-      console.error('Failed to parse mock job openings', e);
-    }
-  }
-  // If not in localstorage, save defaults
-  localStorage.setItem('mockJobOpenings', JSON.stringify(defaultJobOpenings));
-  return defaultJobOpenings;
-};
-
-const saveMockJobOpenings = (data: JobOpening[]) => {
-  localStorage.setItem('mockJobOpenings', JSON.stringify(data));
-};
-
-const getMockCareerContent = (): CareerPageContent => {
-  const stored = localStorage.getItem('mockCareerContent');
-  if (stored) {
-    try {
-      return JSON.parse(stored) as CareerPageContent;
-    } catch (e) {
-      console.error('Failed to parse mock career content', e);
-    }
-  }
-  localStorage.setItem('mockCareerContent', JSON.stringify(defaultCareerContent));
-  return defaultCareerContent;
-};
-
-const saveMockCareerContent = (data: CareerPageContent) => {
-  localStorage.setItem('mockCareerContent', JSON.stringify(data));
-};
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const careerService = {
   getJobOpenings: async (): Promise<ApiResponse<JobOpening[]>> => {
-    await delay(200);
-    return { data: getMockJobOpenings(), message: 'Success', status: 200 };
+    try {
+      const response = await axiosClient.get<ApiResponse<JobOpening[]>>('/api/jobs');
+      if (!response.data || !response.data.data || response.data.data.length === 0) {
+        console.log("Seeding default job openings to DB...");
+        const seededList: JobOpening[] = [];
+        for (const j of defaultJobOpenings) {
+          const res = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', j);
+          seededList.push(res.data.data);
+        }
+        return { data: seededList, message: 'Seeded successfully', status: 200 };
+      }
+      return response.data;
+    } catch (e) {
+      console.warn("API empty, seeding default jobs...", e);
+      try {
+        const seededList: JobOpening[] = [];
+        for (const j of defaultJobOpenings) {
+          const res = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', j);
+          seededList.push(res.data.data);
+        }
+        return { data: seededList, message: 'Seeded fallback', status: 200 };
+      } catch (err) {
+        const fallbackList = defaultJobOpenings.map((j, idx) => ({ ...j, id: idx + 1 }));
+        return { data: fallbackList, message: 'Fallback list', status: 200 };
+      }
+    }
   },
 
   createJobOpening: async (data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    await delay(300);
-    const newJob: JobOpening = {
-      ...data,
-      id: Date.now()
-    };
-    const current = getMockJobOpenings();
-    current.push(newJob);
-    saveMockJobOpenings(current);
-    return { data: newJob, message: 'Job opening posted successfully', status: 201 };
+    const response = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', data);
+    return response.data;
   },
 
   updateJobOpening: async (id: number, data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    await delay(300);
-    const current = getMockJobOpenings();
-    let updatedJob: JobOpening | null = null;
-    const updatedList = current.map(job => {
-      if (job.id === id) {
-        updatedJob = { ...job, ...data };
-        return updatedJob;
-      }
-      return job;
-    });
-    if (updatedJob) {
-      saveMockJobOpenings(updatedList);
-      return { data: updatedJob, message: 'Job opening updated successfully', status: 200 };
-    }
-    throw new Error('Job opening not found');
+    const response = await axiosClient.put<ApiResponse<JobOpening>>(`/api/jobs/${id}`, data);
+    return response.data;
   },
 
   deleteJobOpening: async (id: number): Promise<ApiResponse<null>> => {
-    await delay(200);
-    const filtered = getMockJobOpenings().filter(job => job.id !== id);
-    saveMockJobOpenings(filtered);
-    return { data: null, message: 'Deleted successfully', status: 200 };
+    const response = await axiosClient.delete<ApiResponse<null>>(`/api/jobs/${id}`);
+    return response.data;
   },
 
   getCareerContent: async (): Promise<ApiResponse<CareerPageContent>> => {
-    await delay(200);
-    return { data: getMockCareerContent(), message: 'Success', status: 200 };
+    try {
+      const response = await axiosClient.get<ApiResponse<CareerPageContent>>('/api/career/settings');
+      if (!response.data || !response.data.data || !response.data.data.heroTitle) {
+        // Seed database
+        const seedRes = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', defaultCareerContent);
+        return seedRes.data;
+      }
+      return response.data;
+    } catch (e) {
+      console.warn("API empty, seeding default career settings...", e);
+      try {
+        const seedRes = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', defaultCareerContent);
+        return seedRes.data;
+      } catch (err) {
+        return { data: defaultCareerContent, message: 'Fallback', status: 200 };
+      }
+    }
   },
 
   updateCareerContent: async (data: CareerPageContent): Promise<ApiResponse<CareerPageContent>> => {
-    await delay(300);
-    saveMockCareerContent(data);
-    return { data, message: 'Career page content updated successfully', status: 200 };
+    const response = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', data);
+    return response.data;
   }
 };

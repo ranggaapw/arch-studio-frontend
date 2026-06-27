@@ -1,8 +1,7 @@
 import type { HeroBanner, ApiResponse } from '../types';
-// import axiosClient from '../features/client/api/axiosClient';
+import axiosClient from '../features/client/api/axiosClient';
 
-// MOCK DATA SEMENTARA
-const defaultMockHeroBanner: HeroBanner = {
+const defaultHeroBanner: HeroBanner = {
   id: 1,
   title: 'Eksplorasi Ruang dan Estetika Bersama Mitra Daya Kreasi',
   subtitle: 'Wujudkan Desain Impian',
@@ -10,46 +9,29 @@ const defaultMockHeroBanner: HeroBanner = {
   backgroundImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920'
 };
 
-const getMockHeroBanner = (): HeroBanner => {
-  const stored = localStorage.getItem('mockHeroBanner');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored) as HeroBanner;
-      if (parsed.title && parsed.title.includes('Arch Studio')) {
-        parsed.title = parsed.title.replace('Arch Studio', 'Mitra Daya Kreasi');
-        localStorage.setItem('mockHeroBanner', JSON.stringify(parsed));
-      }
-      return parsed;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-  return defaultMockHeroBanner;
-};
-
-const saveMockHeroBanner = (data: HeroBanner) => {
-  localStorage.setItem('mockHeroBanner', JSON.stringify(data));
-};
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export const homeService = {
   getHeroBanner: async (): Promise<ApiResponse<HeroBanner>> => {
-    // KODE ASLI AXIOS (dikomentari sementara backend belum siap)
-    // const response = await axiosClient.get<ApiResponse<HeroBanner>>('/api/home/banner');
-    // return response.data;
-    
-    await delay(500);
-    return { data: getMockHeroBanner(), message: 'Success', status: 200 };
+    try {
+      const response = await axiosClient.get<ApiResponse<HeroBanner>>('/api/home/banner');
+      if (!response.data || !response.data.data || !response.data.data.title) {
+        // Seed to DB if empty
+        const seedRes = await axiosClient.put<ApiResponse<HeroBanner>>('/api/home/banner', defaultHeroBanner);
+        return seedRes.data;
+      }
+      return response.data;
+    } catch (e) {
+      console.warn("API empty, seeding default banner...", e);
+      try {
+        const seedRes = await axiosClient.put<ApiResponse<HeroBanner>>('/api/home/banner', defaultHeroBanner);
+        return seedRes.data;
+      } catch (err) {
+        return { data: defaultHeroBanner, message: 'Fallback', status: 200 };
+      }
+    }
   },
 
   updateHeroBanner: async (data: HeroBanner): Promise<ApiResponse<HeroBanner>> => {
-    // const response = await axiosClient.put<ApiResponse<HeroBanner>>('/api/home/banner', data);
-    // return response.data;
-
-    await delay(500);
-    const updated = { ...getMockHeroBanner(), ...data };
-    saveMockHeroBanner(updated);
-    return { data: updated, message: 'Updated successfully', status: 200 };
+    const response = await axiosClient.put<ApiResponse<HeroBanner>>('/api/home/banner', data);
+    return response.data;
   }
 };

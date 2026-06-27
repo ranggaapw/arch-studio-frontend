@@ -24,7 +24,7 @@ export default function ClientHome() {
       
       <main 
         className="relative w-full h-[calc(100vh-72px)] px-6 flex flex-col items-center justify-center text-center bg-cover bg-center overflow-hidden"
-        style={banner?.backgroundImageUrl ? { backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url(${banner.backgroundImageUrl})` } : {}}
+        style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url(${banner?.backgroundImageUrl || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920'})` }}
       >
         {isLoading ? (
           <div className="py-20 flex flex-col items-center">

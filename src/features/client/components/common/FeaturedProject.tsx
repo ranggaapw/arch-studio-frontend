@@ -12,8 +12,60 @@ const AVAILABLE_CATEGORIES = [
   { id: 'industrial', label: 'Industrial' }
 ];
 
+const defaultProjectsList: Project[] = [
+  { 
+    id: 1, 
+    title: 'Modern Minimalist House', 
+    description: 'Desain rumah arsitektur minimalis yang memaksimalkan sirkulasi cahaya alami dan fungsionalitas ruang di pusat perkotaan padat. Menggunakan tata ruang terbuka (open plan) untuk memberikan kesan lapang dan koneksi antar ruang yang harmonis.', 
+    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 
+    isFeatured: true, 
+    categories: ['minimalis modern'],
+    materials: 'Beton Ekspos, Kaca Tempered, Kayu Jati Solid, Baja Hitam, Cat Anti-UV Premium',
+    location: 'Jakarta Selatan, DKI Jakarta',
+    year: 2024,
+    clientName: 'Bapak Ronald Sitorus',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800'
+    ]
+  },
+  { 
+    id: 2, 
+    title: 'Urban Coffee Shop', 
+    description: 'Renovasi interior kedai kopi modern bergaya industrial kontemporer. Memanfaatkan ekspos struktur dinding semen kasar, material besi hollow, dan aksen kayu pinus hangat untuk menciptakan suasana nyaman, santai, dan estetik bagi para pengunjung.', 
+    imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800', 
+    isFeatured: true, 
+    categories: ['industrial'],
+    materials: 'Besi Hollow Hitam, Semen Kamprot, Bata Merah Ekspos, Kayu Pinus Vernis, Lampu Edison Filamen',
+    location: 'Dago, Bandung',
+    year: 2023,
+    clientName: 'Kopi Nemu Group',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800'
+    ]
+  },
+  { 
+    id: 3, 
+    title: 'Luxury Villa Bali', 
+    description: 'Desain villa peristirahatan tropis modern yang terintegrasi langsung dengan keindahan alam sekitarnya. Dilengkapi infinity pool luas dengan dek kayu ulin berkualitas tinggi, dinding batu paras Jogja yang elegan, serta sirkulasi udara silang maksimal.', 
+    imageUrl: 'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800', 
+    isFeatured: true, 
+    categories: ['rumah tropis modern'],
+    materials: 'Batu Paras Jogja, Kayu Ulin Kalimantan, Atap Alang-alang Premium, Kaca Frameless Tempered, Lantai Teraso',
+    location: 'Ubud, Bali',
+    year: 2025,
+    clientName: 'Mrs. Sarah Jenkins',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'
+    ]
+  }
+];
+
 export default function FeaturedProject() {
-  const { data: projectsResponse, isLoading, isError } = useQuery({
+  const { data: projectsResponse, isLoading } = useQuery({
     queryKey: ['projects'],
     queryFn: () => projectService.getProjects()
   });
@@ -22,7 +74,7 @@ export default function FeaturedProject() {
   const [selectedItem, setSelectedItem] = useState<Project | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
-  const projects = projectsResponse?.data || [];
+  const projects = projectsResponse?.data && projectsResponse.data.length > 0 ? projectsResponse.data : defaultProjectsList;
   const featuredProjects = projects.filter(p => p.isFeatured);
 
   const handleCategoryClick = (catId: string) => {
@@ -45,6 +97,13 @@ export default function FeaturedProject() {
     };
   }, [selectedItem]);
 
+  // Retrieve gallery images for modal
+  const modalImages = selectedItem
+    ? (selectedItem.galleryImages && selectedItem.galleryImages.length > 0
+        ? selectedItem.galleryImages
+        : [selectedItem.imageUrl])
+    : [];
+
   if (isLoading) {
     return (
       <section className="w-full py-20 bg-white">
@@ -59,15 +118,6 @@ export default function FeaturedProject() {
       </section>
     );
   }
-
-  if (isError || featuredProjects.length === 0) return null;
-
-  // Retrieve gallery images for modal
-  const modalImages = selectedItem
-    ? (selectedItem.galleryImages && selectedItem.galleryImages.length > 0
-        ? selectedItem.galleryImages
-        : [selectedItem.imageUrl])
-    : [];
 
   return (
     <section className="w-full py-20 bg-white">
