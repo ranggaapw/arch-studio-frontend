@@ -22,9 +22,8 @@ export default function ClientHome() {
     <div className="min-h-screen bg-neutral-50 font-sans">
       <Navbar />
       
-      {/* Hero Section */}
       <main 
-        className="relative w-full min-h-[85vh] pt-36 pb-24 px-6 flex flex-col items-center justify-center text-center bg-cover bg-center overflow-hidden"
+        className="relative w-full h-[calc(100vh-72px)] px-6 flex flex-col items-center justify-center text-center bg-cover bg-center overflow-hidden"
         style={banner?.backgroundImageUrl ? { backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url(${banner.backgroundImageUrl})` } : {}}
       >
         {isLoading ? (

@@ -95,7 +95,7 @@ export default function KarirPage() {
 
       {/* --- HERO SECTION --- */}
       <section 
-        className="relative w-full min-h-[75vh] pt-32 pb-20 px-8 flex flex-col items-center justify-center text-center bg-cover bg-center"
+        className="relative w-full h-[calc(100vh-72px)] px-8 flex flex-col items-center justify-center text-center bg-cover bg-center"
         style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75)), url('https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80')` }}
       >
         <div className="max-w-4xl mx-auto z-10 text-white">
