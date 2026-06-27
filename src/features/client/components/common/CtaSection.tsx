@@ -9,7 +9,7 @@ export default function CtaSection() {
             <h2 className="text-h2-bold text-neutral-900 mb-2">Mulai Sekarang!</h2>
             <div className="w-16 h-1 bg-primary-600 mb-6 rounded-full"></div>
             <p className="text-body-lg-regular text-neutral-600 mb-10 max-w-lg leading-relaxed">
-              Tantangan diterima! Konsultasikan visi arsitektur dan desain interior Anda bersama Arch Studio, dan wujudkan ruang impian menjadi kenyataan.
+              Tantangan diterima! Konsultasikan kebutuhan furniture custom dan interior Anda bersama Mitra Daya Kreasi, dan wujudkan ruang impian menjadi kenyataan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button className="flex items-center justify-center px-8 py-3.5 bg-primary-700 text-white rounded-xl text-body-md-bold hover:bg-primary-800 transition-colors cursor-pointer shadow-arch-md hover:-translate-y-0.5 duration-300">

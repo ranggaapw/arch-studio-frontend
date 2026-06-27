@@ -6,18 +6,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
           {/* Logo Section */}
           <div className="col-span-1 md:col-span-2">
-            <h2 className="text-h4-bold text-neutral-900 mb-6">Arch Studio</h2>
+            <h2 className="text-body-lg-bold text-neutral-900 mb-6 font-bold uppercase tracking-wide">Workshop Furniture Mitra Daya Kreasi</h2>
             <div className="space-y-6">
               <div>
-                <h4 className="text-body-sm-bold text-neutral-900 mb-2">Kantor Pusat</h4>
+                <h4 className="text-body-sm-bold text-neutral-900 mb-2 font-semibold">Alamat Workshop</h4>
                 <p className="text-body-sm-regular text-neutral-500 leading-relaxed">
-                  Jl. Raya Bogor KM 30,<br />
-                  Bogor, Jawa Barat, Indonesia.
+                  GPF2+3GH, Tegal, Kemang,<br />
+                  Kabupaten Bogor, Jawa Barat 16310.
                 </p>
               </div>
               <div>
-                <h4 className="text-body-sm-bold text-neutral-900 mb-2">Kontak</h4>
-                <p className="text-body-sm-regular text-neutral-500">021-12345678</p>
+                <h4 className="text-body-sm-bold text-neutral-900 mb-2 font-semibold">Kontak</h4>
+                <p className="text-body-sm-regular text-neutral-500">0812-9732-7397</p>
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-neutral-100 flex flex-col md:flex-row justify-between items-center gap-6">
           <p className="text-body-sm-regular text-neutral-400">
-            © 2026 Arch Studio. Semua Hak Dilindungi.
+            © 2026 Workshop Furniture Mitra Daya Kreasi. Semua Hak Dilindungi.
           </p>
           <div className="flex gap-6 text-neutral-500">
             {/* Twitter / X SVG */}

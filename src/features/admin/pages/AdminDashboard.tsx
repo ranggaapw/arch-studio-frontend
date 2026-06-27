@@ -56,7 +56,7 @@ export default function AdminDashboard() {
       {/* --- SIDEBAR --- */}
       <aside className="w-64 bg-white border-r border-neutral-200 p-6 flex flex-col justify-between h-screen sticky top-0">
         <div>
-          <h1 className="text-xl font-bold text-primary-600 mb-10">Arch Admin</h1>
+          <h1 className="text-xl font-bold text-primary-600 mb-10">MDK Admin</h1>
 
           <nav className="space-y-2">
             <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 mt-4 px-4">Menu Utama</p>
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
           <div className="animate-in fade-in duration-300">
             <header className="mb-8">
               <h2 className="text-2xl font-bold text-neutral-900">Kelola Tentang Kami</h2>
-              <p className="text-neutral-500">Ubah profil perusahaan dan visi misi Arch Studio.</p>
+              <p className="text-neutral-500">Ubah profil perusahaan dan visi misi Mitra Daya Kreasi.</p>
             </header>
             <AboutManager />
           </div>

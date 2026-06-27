@@ -35,9 +35,9 @@ export default function ContactSection() {
           
           {/* Text Left */}
           <div>
-            <h2 className="text-h3-bold text-neutral-900 mb-6">Mulai Proyek Impian Anda Bersama Kami</h2>
+            <h2 className="text-h3-bold text-neutral-900 mb-6">Mulai Proyek Furniture Impian Anda Bersama Kami</h2>
             <p className="text-body-lg-regular text-neutral-500 mb-10">
-              Punya ide luar biasa untuk rumah atau kantor Anda? Jangan ragu untuk menghubungi kami. Tim ahli Arch Studio siap membantu mewujudkannya dari konsep hingga realita.
+              Punya ide luar biasa untuk pembuatan furniture custom rumah atau kantor Anda? Jangan ragu untuk menghubungi kami. Tim ahli Mitra Daya Kreasi siap membantu mewujudkannya dari konsep hingga realita.
             </p>
             <div className="space-y-6">
               <div className="flex items-center gap-4">
@@ -46,7 +46,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="text-body-md-bold text-neutral-800">Telepon</h4>
-                  <p className="text-neutral-500">021-12345678</p>
+                  <p className="text-neutral-500">0812-9732-7397</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -55,7 +55,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="text-body-md-bold text-neutral-800">Email</h4>
-                  <p className="text-neutral-500">hello@archstudio.com</p>
+                  <p className="text-neutral-500">hello@mitradayakreasi.com</p>
                 </div>
               </div>
             </div>

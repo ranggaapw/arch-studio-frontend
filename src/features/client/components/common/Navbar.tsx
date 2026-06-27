@@ -8,10 +8,10 @@ export default function Navbar() {
     <nav className="w-full bg-white shadow-arch-lg px-8 py-4 flex items-center justify-between sticky top-0 z-50">
       {/* Logo Area (Diubah menjadi Link ke Home) */}
       <Link to="/" className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-        <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-          <span className="text-white text-h5-bold">A</span>
+        <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <span className="text-white text-h5-bold">M</span>
         </div>
-        <span className="text-h5-bold text-neutral-900 tracking-tight">Arch Studio</span>
+        <span className="text-h5-bold text-neutral-900 tracking-tight">Mitra Daya Kreasi</span>
       </Link>
 
       {/* Navigation Links */}

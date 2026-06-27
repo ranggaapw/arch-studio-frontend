@@ -4,7 +4,7 @@ import type { HeroBanner, ApiResponse } from '../types';
 // MOCK DATA SEMENTARA
 const defaultMockHeroBanner: HeroBanner = {
   id: 1,
-  title: 'Eksplorasi Ruang dan Estetika Bersama Arch Studio',
+  title: 'Eksplorasi Ruang dan Estetika Bersama Mitra Daya Kreasi',
   subtitle: 'Wujudkan Desain Impian',
   description: 'Dari arsitektur modern hingga interior tropis, kami membawa visi Anda menjadi kenyataan dengan sentuhan profesional yang tak lekang oleh waktu.',
   backgroundImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920'
@@ -12,7 +12,19 @@ const defaultMockHeroBanner: HeroBanner = {
 
 const getMockHeroBanner = (): HeroBanner => {
   const stored = localStorage.getItem('mockHeroBanner');
-  return stored ? JSON.parse(stored) : defaultMockHeroBanner;
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as HeroBanner;
+      if (parsed.title && parsed.title.includes('Arch Studio')) {
+        parsed.title = parsed.title.replace('Arch Studio', 'Mitra Daya Kreasi');
+        localStorage.setItem('mockHeroBanner', JSON.stringify(parsed));
+      }
+      return parsed;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  return defaultMockHeroBanner;
 };
 
 const saveMockHeroBanner = (data: HeroBanner) => {

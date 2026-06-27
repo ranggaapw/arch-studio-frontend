@@ -111,7 +111,7 @@ export default function ServiceManager() {
             {editingService ? (editingService.id ? 'Edit Layanan' : 'Tambah Layanan') : 'Kelola Layanan'}
           </h2>
           <p className="text-neutral-500">
-            {editingService ? 'Silakan isi detail layanan di bawah ini.' : 'Daftar layanan arsitektur yang ditawarkan Arch Studio.'}
+            {editingService ? 'Silakan isi detail layanan di bawah ini.' : 'Daftar layanan furniture yang ditawarkan Mitra Daya Kreasi.'}
           </p>
         </div>
         {!editingService && (

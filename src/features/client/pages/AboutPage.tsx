@@ -93,7 +93,7 @@ export default function AboutPage() {
       {/* --- HERO SECTION --- */}
       <section className="w-full min-h-[90vh] flex flex-col items-center justify-center relative px-8 pt-20 pb-32">
         <h1 className="text-5xl md:text-7xl font-bold text-neutral-900 mb-4 text-center tracking-tight">
-          We are <span className="text-primary-600">Arch Studio</span>
+          We are <span className="text-primary-600">Mitra Daya Kreasi</span>
         </h1>
         <div className="text-xl md:text-2xl text-neutral-500 text-center mb-24 max-w-4xl mx-auto">
           {isLoading ? (

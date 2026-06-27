@@ -37,9 +37,9 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex items-center gap-3 mb-10 justify-center">
           <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">A</span>
+            <span className="text-white font-bold text-xl">M</span>
           </div>
-          <span className="text-2xl font-bold text-neutral-900 tracking-tight">Arch Studio</span>
+          <span className="text-2xl font-bold text-neutral-900 tracking-tight">Mitra Daya Kreasi</span>
         </div>
 
         <div className="mb-8 text-center">
