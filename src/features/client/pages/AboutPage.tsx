@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import ContactSection from '../components/common/ContactSection';
-import {Mouse } from 'lucide-react';
+import { Mouse, Leaf, ShieldCheck, Sparkles } from 'lucide-react';
 import CtaSection from '../components/common/CtaSection';
 import { useQuery } from '@tanstack/react-query';
 import { aboutService } from '../../../services/aboutService';
@@ -13,17 +13,20 @@ const reasons = [
   {
     title: 'Desain Berkelanjutan',
     desc: 'Kami memprioritaskan material ramah lingkungan dan efisiensi energi dalam setiap rancangan.',
-    img: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233'
+    img: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
+    icon: Leaf
   },
   {
     title: 'Komitmen Penuh',
     desc: 'Tim ahli kami mendampingi Anda dari konsep awal hingga penyelesaian konstruksi.',
-    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d'
+    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80',
+    icon: ShieldCheck
   },
   {
     title: 'Inovasi Modern',
     desc: 'Memadukan estetika kontemporer dengan teknologi smart home terkini.',
-    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c'
+    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80',
+    icon: Sparkles
   }
 ];
 
@@ -180,15 +183,34 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {reasons.map((reason, index) => (
-              <div key={index} className="bg-neutral-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <img src={reason.img} alt={reason.title} className="w-full h-64 object-cover grayscale hover:grayscale-0 transition-all duration-500" />
-                <div className="p-8 text-center bg-white border-t-4 border-primary-500">
-                  <h3 className="text-xl font-bold text-neutral-900 mb-3">{reason.title}</h3>
-                  <p className="text-neutral-500 leading-relaxed text-sm">{reason.desc}</p>
+            {reasons.map((reason, index) => {
+              const Icon = reason.icon;
+              return (
+                <div key={index} className="bg-white rounded-3xl overflow-hidden shadow-arch-sm hover:shadow-arch-lg transition-all duration-500 hover:-translate-y-2 group flex flex-col border border-neutral-100/50">
+                  <div className="relative overflow-hidden h-56">
+                    <img 
+                      src={reason.img} 
+                      alt={reason.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+                  </div>
+                  <div className="p-8 pt-10 text-center relative flex-1 flex flex-col items-center">
+                    {/* Floating Icon Container */}
+                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 bg-primary-600 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white transition-transform duration-500 group-hover:scale-110">
+                      <Icon size={22} />
+                    </div>
+                    
+                    <h3 className="text-body-lg-bold text-neutral-900 font-bold mb-3 mt-1 group-hover:text-primary-600 transition-colors">
+                      {reason.title}
+                    </h3>
+                    <p className="text-neutral-500 leading-relaxed text-sm">
+                      {reason.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
