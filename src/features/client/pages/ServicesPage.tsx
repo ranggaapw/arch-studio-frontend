@@ -1,6 +1,6 @@
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
-import CtaSection from '../components/common/CtaSection';
+import ContactSection from '../components/common/ContactSection';
 import { motion } from 'framer-motion';
 import { MessageSquare, PenTool, HardHat, Key } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -179,7 +179,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <CtaSection />
+      <ContactSection />
       <Footer />
     </div>
   );

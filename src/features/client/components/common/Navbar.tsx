@@ -46,6 +46,16 @@ export default function Navbar() {
         >
           Tentang Kami
         </Link>
+        <Link 
+          to="/karir" 
+          className={`transition-colors ${
+            currentPath === '/karir' 
+              ? 'text-primary-600 font-bold' 
+              : 'text-neutral-600 hover:text-primary-600'
+          }`}
+        >
+          Karir
+        </Link>
       </div>
 
       {/* CTA Button */}

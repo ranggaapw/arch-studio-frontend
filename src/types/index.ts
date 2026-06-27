@@ -52,3 +52,16 @@ export interface ApiResponse<T> {
   message: string;
   status: number;
 }
+
+export interface JobApplication {
+  id: number;
+  jobTitle: string;
+  name: string;
+  email: string;
+  phone: string;
+  cvFileName?: string;
+  cvFileData?: string; // base64 data url
+  coverLetter: string;
+  createdAt: string;
+  isRead: boolean;
+}

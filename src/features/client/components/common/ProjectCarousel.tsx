@@ -43,7 +43,7 @@ export default function ProjectCarousel() {
     <section className="w-full py-20 bg-neutral-50">
       <div className="max-w-7xl mx-auto px-8">
         <div className="text-center mb-12">
-          <span className="text-primary-600 text-body-sm-bold uppercase tracking-[0.25em] mb-3 block">
+          <span className="text-sm md:text-base font-extrabold text-primary-600 uppercase tracking-[0.2em] mb-3 block">
             Eksplorasi Karya
           </span>
           <h2 className="text-3xl md:text-h3-bold text-neutral-900 font-bold tracking-tight">

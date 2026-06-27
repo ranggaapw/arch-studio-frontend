@@ -174,7 +174,7 @@ export default function AboutPage() {
       <section className="w-full bg-white py-24 border-t border-neutral-100">
         <div className="max-w-7xl mx-auto px-8">
           <div className="mb-16">
-            <span className="text-primary-600 text-sm font-bold uppercase tracking-widest mb-4 block">
+            <span className="text-sm md:text-base font-extrabold text-primary-600 uppercase tracking-[0.2em] mb-4 block">
               Mengapa Memilih Kami
             </span>
             <h2 className="text-3xl md:text-4xl font-bold text-neutral-900">

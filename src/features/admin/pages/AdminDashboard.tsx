@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Home, Briefcase, FolderOpen, Info, LogOut } from 'lucide-react';
+import { LayoutDashboard, Home, Briefcase, FolderOpen, Info, LogOut, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import HeroBannerManager from '../components/HeroBannerManager';
@@ -7,32 +7,36 @@ import ServiceManager from '../components/ServiceManager';
 import PortfolioManager from '../components/PortfolioManager';
 import AboutManager from '../components/AboutManager';
 import MessageManager from '../components/MessageManager';
+import JobApplicationManager from '../components/JobApplicationManager';
 import { projectService } from '../../../services/projectService';
 import { serviceService } from '../../../services/serviceService';
 import { messageService } from '../../../services/messageService';
+import { jobApplicationService } from '../../../services/jobApplicationService';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  // Menu yang tersedia: 'dashboard' | 'home' | 'services' | 'portfolio' | 'about'
+  // Menu yang tersedia: 'dashboard' | 'home' | 'services' | 'portfolio' | 'about' | 'messages' | 'applications'
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Dashboard Stats
-  const [stats, setStats] = useState({ projects: 0, services: 0, messages: 0 });
+  const [stats, setStats] = useState({ projects: 0, services: 0, messages: 0, applications: 0 });
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
       const fetchStats = async () => {
         try {
-          const [projectsRes, servicesRes, messagesRes] = await Promise.all([
+          const [projectsRes, servicesRes, messagesRes, appsRes] = await Promise.all([
             projectService.getProjects(),
             serviceService.getServices(),
-            messageService.getMessages()
+            messageService.getMessages(),
+            jobApplicationService.getApplications()
           ]);
           setStats({
             projects: projectsRes.data.length,
             services: servicesRes.data.length,
-            messages: messagesRes.data.filter(m => !m.isRead).length
+            messages: messagesRes.data.filter(m => !m.isRead).length,
+            applications: appsRes.data.filter(a => !a.isRead).length
           });
         } catch (error) {
           console.error("Failed to fetch stats", error);
@@ -107,6 +111,20 @@ export default function AdminDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => switchTab('applications')}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors cursor-pointer ${activeTab === 'applications' ? 'bg-primary-50 text-primary-600 font-bold' : 'text-neutral-600 hover:bg-neutral-50'}`}
+            >
+              <div className="flex items-center gap-3">
+                <UserCheck size={20} />
+                Lamaran Kerja
+              </div>
+              {stats.applications > 0 && (
+                <span className="bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {stats.applications}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -133,11 +151,12 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-neutral-900">Dashboard Overview</h2>
               <p className="text-neutral-500">Selamat datang kembali, Admin!</p>
             </header>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { title: 'Total Portofolio', value: stats.projects.toString() },
                 { title: 'Total Layanan', value: stats.services.toString() },
-                { title: 'Pesan Baru', value: stats.messages.toString() }
+                { title: 'Pesan Baru', value: stats.messages.toString() },
+                { title: 'Lamaran Baru', value: stats.applications.toString() }
               ].map((stat, i) => (
                 <div key={i} className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm">
                   <h3 className="text-neutral-500 text-sm mb-2">{stat.title}</h3>
@@ -189,6 +208,19 @@ export default function AdminDashboard() {
           <div className="animate-in fade-in duration-300">
             <MessageManager onMessageRead={() => {
               setStats(prev => ({ ...prev, messages: Math.max(0, prev.messages - 1) }));
+            }} />
+          </div>
+        )}
+
+        {/* VIEW: LAMARAN KERJA */}
+        {activeTab === 'applications' && (
+          <div className="animate-in fade-in duration-300">
+            <header className="mb-8">
+              <h2 className="text-2xl font-bold text-neutral-900">Kelola Lamaran Kerja</h2>
+              <p className="text-neutral-500">Tinjau CV pelamar, nomor telepon, dan surat lamaran kerja.</p>
+            </header>
+            <JobApplicationManager onAppRead={() => {
+              setStats(prev => ({ ...prev, applications: Math.max(0, prev.applications - 1) }));
             }} />
           </div>
         )}
