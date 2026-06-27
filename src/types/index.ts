@@ -65,3 +65,11 @@ export interface JobApplication {
   createdAt: string;
   isRead: boolean;
 }
+
+export interface JobOpening {
+  id: number;
+  title: string;
+  type: string;
+  loc: string;
+  desc: string;
+}

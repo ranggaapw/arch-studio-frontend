@@ -8,6 +8,7 @@ import PortfolioManager from '../components/PortfolioManager';
 import AboutManager from '../components/AboutManager';
 import MessageManager from '../components/MessageManager';
 import JobApplicationManager from '../components/JobApplicationManager';
+import CareerManager from '../components/CareerManager';
 import { projectService } from '../../../services/projectService';
 import { serviceService } from '../../../services/serviceService';
 import { messageService } from '../../../services/messageService';
@@ -95,6 +96,12 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors cursor-pointer ${activeTab === 'about' ? 'bg-primary-50 text-primary-600 font-bold' : 'text-neutral-600 hover:bg-neutral-50'}`}
             >
               <Info size={20} /> Tentang Kami
+            </button>
+            <button
+              onClick={() => switchTab('careers')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors cursor-pointer ${activeTab === 'careers' ? 'bg-primary-50 text-primary-600 font-bold' : 'text-neutral-600 hover:bg-neutral-50'}`}
+            >
+              <Briefcase size={20} /> Lowongan Karir
             </button>
             <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-2 mt-8 px-4 pt-4 border-t border-neutral-100">Komunikasi</p>
             <button
@@ -222,6 +229,13 @@ export default function AdminDashboard() {
             <JobApplicationManager onAppRead={() => {
               setStats(prev => ({ ...prev, applications: Math.max(0, prev.applications - 1) }));
             }} />
+          </div>
+        )}
+
+        {/* VIEW: LOWONGAN KARIR */}
+        {activeTab === 'careers' && (
+          <div className="animate-in fade-in duration-300">
+            <CareerManager />
           </div>
         )}
 

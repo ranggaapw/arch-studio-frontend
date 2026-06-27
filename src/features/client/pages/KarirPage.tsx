@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import { MapPin, Clock, ArrowUpRight, Send, Check, Paperclip, Loader2 } from 'lucide-react';
 import { jobApplicationService } from '../../../services/jobApplicationService';
+import { careerService } from '../../../services/careerService';
+import type { JobOpening } from '../../../types';
 
 export default function KarirPage() {
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -18,26 +20,23 @@ export default function KarirPage() {
   const [cvFileName, setCvFileName] = useState('');
   const [cvFileData, setCvFileData] = useState('');
 
-  const jobs = [
-    {
-      title: 'Tukang Kayu / Woodworker Senior',
-      type: 'Full-Time',
-      loc: 'Bogor, ID',
-      desc: 'Berpengalaman dalam pembuatan furniture custom minimalis dan klasik (Multiplex, HPL, Solid Wood).'
-    },
-    {
-      title: 'Drafter & Estimator Furniture',
-      type: 'Full-Time',
-      loc: 'Bogor, ID',
-      desc: 'Mampu memproses desain 3D menjadi gambar kerja CAD (2D) detail dan menyusun RAB produksi.'
-    },
-    {
-      title: 'Helper Workshop / Finishing Operator',
-      type: 'Full-Time',
-      loc: 'Bogor, ID',
-      desc: 'Membantu pengamplasan, pendempulan, dan aplikasi spray melamine/duco berkualitas tinggi.'
-    }
-  ];
+  const [jobs, setJobs] = useState<JobOpening[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoadingJobs(true);
+        const res = await careerService.getJobOpenings();
+        setJobs(res.data);
+      } catch (err) {
+        console.error('Failed to fetch jobs', err);
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+    fetchJobs();
+  }, []);
 
   const handleApplyClick = (jobTitle: string) => {
     setSelectedJob(jobTitle);
@@ -197,34 +196,47 @@ export default function KarirPage() {
             <div className="w-12 h-1 bg-primary-600 mx-auto mt-4 rounded-full"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {jobs.map((job, idx) => (
-              <div 
-                key={idx} 
-                className="bg-neutral-50 p-8 rounded-3xl border border-neutral-100 flex flex-col justify-between hover:shadow-md hover:border-primary-500/30 transition-all duration-300 group"
-              >
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-primary-600 transition-colors">
-                    {job.title}
-                  </h3>
-                  <div className="flex gap-4 text-xs text-neutral-500 font-medium mb-6">
-                    <span className="bg-white px-2.5 py-1 rounded-full border border-neutral-200/60">{job.type}</span>
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {job.loc}</span>
-                  </div>
-                  <p className="text-sm text-neutral-500 leading-relaxed mb-8">
-                    {job.desc}
-                  </p>
-                </div>
-                
-                <button 
-                  onClick={() => handleApplyClick(job.title)}
-                  className="w-full py-3.5 bg-white border border-neutral-200 text-neutral-700 rounded-xl font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors cursor-pointer group-hover:scale-[1.02] duration-300"
+          {loadingJobs ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-56 bg-neutral-100 animate-pulse rounded-3xl"></div>
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-12 text-neutral-400">
+              <p className="font-semibold text-lg">Belum ada lowongan pekerjaan aktif saat ini.</p>
+              <p className="text-sm mt-1">Silakan hubungi kami atau cek kembali nanti!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {jobs.map((job) => (
+                <div 
+                  key={job.id} 
+                  className="bg-neutral-50 p-8 rounded-3xl border border-neutral-100 flex flex-col justify-between hover:shadow-md hover:border-primary-500/30 transition-all duration-300 group"
                 >
-                  Apply Job <ArrowUpRight size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-primary-600 transition-colors">
+                      {job.title}
+                    </h3>
+                    <div className="flex gap-4 text-xs text-neutral-500 font-medium mb-6">
+                      <span className="bg-white px-2.5 py-1 rounded-full border border-neutral-200/60">{job.type}</span>
+                      <span className="flex items-center gap-1"><MapPin size={12} /> {job.loc}</span>
+                    </div>
+                    <p className="text-sm text-neutral-500 leading-relaxed mb-8">
+                      {job.desc}
+                    </p>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleApplyClick(job.title)}
+                    className="w-full py-3.5 bg-white border border-neutral-200 text-neutral-700 rounded-xl font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors cursor-pointer group-hover:scale-[1.02] duration-300"
+                  >
+                    Apply Job <ArrowUpRight size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
