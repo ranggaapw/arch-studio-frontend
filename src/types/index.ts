@@ -73,3 +73,22 @@ export interface JobOpening {
   loc: string;
   desc: string;
 }
+
+export interface PotentialItem {
+  title: string;
+  desc: string;
+  imgUrl: string;
+}
+
+export interface CultureItem {
+  title: string;
+  desc: string;
+}
+
+export interface CareerPageContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroBgUrl: string;
+  potentials: PotentialItem[];
+  cultures: CultureItem[];
+}

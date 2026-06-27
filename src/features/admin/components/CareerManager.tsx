@@ -1,35 +1,50 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MapPin, Clock, Briefcase, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Clock, Briefcase, Loader2, Save, FileText, Image as ImageIcon, Sparkles, Heart } from 'lucide-react';
 import { careerService } from '../../../services/careerService';
-import type { JobOpening } from '../../../types';
+import type { JobOpening, CareerPageContent, PotentialItem, CultureItem } from '../../../types';
 
 export default function CareerManager() {
+  // Tab control inside Career Manager: 'content' | 'jobs'
+  const [subTab, setSubTab] = useState<'content' | 'jobs'>('content');
+  
+  // Job openings state
   const [jobs, setJobs] = useState<JobOpening[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingJobs, setLoadingJobs] = useState(true);
   const [editingJob, setEditingJob] = useState<JobOpening | Partial<JobOpening> | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [savingJob, setSavingJob] = useState(false);
 
-  const fetchJobs = async () => {
+  // Career page content state
+  const [content, setContent] = useState<CareerPageContent | null>(null);
+  const [loadingContent, setLoadingContent] = useState(true);
+  const [savingContent, setSavingContent] = useState(false);
+
+  const fetchData = async () => {
     try {
-      setLoading(true);
-      const res = await careerService.getJobOpenings();
-      setJobs(res.data);
+      setLoadingJobs(true);
+      setLoadingContent(true);
+      const [jobsRes, contentRes] = await Promise.all([
+        careerService.getJobOpenings(),
+        careerService.getCareerContent()
+      ]);
+      setJobs(jobsRes.data);
+      setContent(contentRes.data);
     } catch (error) {
-      console.error('Failed to fetch job openings', error);
+      console.error('Failed to fetch career data', error);
     } finally {
-      setLoading(false);
+      setLoadingJobs(false);
+      setLoadingContent(false);
     }
   };
 
   useEffect(() => {
-    fetchJobs();
+    fetchData();
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveJob = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingJob) return;
 
-    setSaving(true);
+    setSavingJob(true);
     try {
       if ('id' in editingJob && editingJob.id) {
         // Update
@@ -42,176 +57,465 @@ export default function CareerManager() {
       }
       setEditingJob(null);
     } catch (error) {
-      console.error('Failed to save job opening', error);
-      alert('Gagal menyimpan lowongan pekerjaan.');
+      console.error(error);
+      alert('Gagal menyimpan lowongan.');
     } finally {
-      setSaving(false);
+      setSavingJob(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDeleteJob = async (id: number) => {
     if (!confirm('Apakah Anda yakin ingin menghapus lowongan pekerjaan ini?')) return;
     try {
       await careerService.deleteJobOpening(id);
       setJobs(jobs.filter(j => j.id !== id));
     } catch (error) {
-      console.error('Failed to delete job opening', error);
+      console.error(error);
     }
+  };
+
+  const handleSaveContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!content) return;
+
+    setSavingContent(true);
+    try {
+      await careerService.updateCareerContent(content);
+      alert('Konten halaman karir berhasil diperbarui!');
+    } catch (error) {
+      console.error(error);
+      alert('Gagal memperbarui konten halaman.');
+    } finally {
+      setSavingContent(true);
+      setTimeout(() => setSavingContent(false), 800);
+    }
+  };
+
+  // Base64 image handler helper
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>, 
+    target: 'hero' | { type: 'potential'; index: number }
+  ) => {
+    const file = e.target.files?.[0];
+    if (file && content) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        if (target === 'hero') {
+          setContent({ ...content, heroBgUrl: base64 });
+        } else {
+          const updatedPotentials = [...content.potentials];
+          updatedPotentials[target.index] = {
+            ...updatedPotentials[target.index],
+            imgUrl: base64
+          };
+          setContent({ ...content, potentials: updatedPotentials });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Potential card inputs change helper
+  const handlePotentialChange = (index: number, field: keyof PotentialItem, value: string) => {
+    if (!content) return;
+    const updated = [...content.potentials];
+    updated[index] = { ...updated[index], [field]: value };
+    setContent({ ...content, potentials: updated });
+  };
+
+  // Culture item inputs change helper
+  const handleCultureChange = (index: number, field: keyof CultureItem, value: string) => {
+    if (!content) return;
+    const updated = [...content.cultures];
+    updated[index] = { ...updated[index], [field]: value };
+    setContent({ ...content, cultures: updated });
   };
 
   return (
     <div className="space-y-8 font-sans">
-      <div className="flex justify-between items-center">
+      {/* Header & Sub-Tab Navigation */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-neutral-200">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900">Kelola Lowongan Karir</h2>
-          <p className="text-neutral-500">Tambah, ubah, atau hapus posisi pekerjaan yang ditawarkan.</p>
+          <h2 className="text-2xl font-bold text-neutral-900">Kelola Halaman Karir</h2>
+          <p className="text-neutral-500">Edit layout halaman statis karir dan postingan lowongan kerja aktif.</p>
         </div>
-        <button
-          onClick={() => setEditingJob({ title: '', type: 'Full-Time', loc: 'Bogor, ID', desc: '' })}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm cursor-pointer"
-        >
-          <Plus size={16} /> Tambah Lowongan
-        </button>
+        
+        {/* Inner Sub Tabs Toggle */}
+        <div className="flex bg-neutral-100 p-1.5 rounded-xl border border-neutral-200/50">
+          <button
+            onClick={() => setSubTab('content')}
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              subTab === 'content' ? 'bg-white text-primary-600 shadow-sm' : 'text-neutral-600 hover:text-neutral-950'
+            }`}
+          >
+            Konten Halaman
+          </button>
+          <button
+            onClick={() => setSubTab('jobs')}
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              subTab === 'jobs' ? 'bg-white text-primary-600 shadow-sm' : 'text-neutral-600 hover:text-neutral-950'
+            }`}
+          >
+            Daftar Lowongan
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="h-48 bg-neutral-100 animate-pulse rounded-2xl"></div>
-          ))}
-        </div>
-      ) : jobs.length === 0 ? (
-        <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center text-neutral-400">
-          <Briefcase className="mx-auto text-neutral-300 mb-3" size={40} />
-          <p className="font-semibold text-neutral-500">Belum ada lowongan pekerjaan.</p>
-          <p className="text-xs text-neutral-400 mt-1">Klik tombol di atas untuk memposting posisi kerja baru.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {jobs.map((job) => (
-            <div key={job.id} className="bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-              <div>
-                <h3 className="text-lg font-bold text-neutral-900 mb-2">{job.title}</h3>
-                <div className="flex gap-4 text-xs text-neutral-500 font-medium mb-4">
-                  <span className="bg-neutral-50 px-2 py-0.5 rounded border border-neutral-200/60">{job.type}</span>
-                  <span className="flex items-center gap-1"><MapPin size={12} /> {job.loc}</span>
-                </div>
-                <p className="text-sm text-neutral-500 leading-relaxed line-clamp-3 mb-6">
-                  {job.desc}
-                </p>
-              </div>
-
-              <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4 mt-2">
-                <button
-                  onClick={() => setEditingJob(job)}
-                  className="p-2 text-neutral-500 hover:text-primary-600 hover:bg-neutral-50 rounded-lg transition-colors cursor-pointer"
-                  title="Ubah Lowongan"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  onClick={() => handleDelete(job.id)}
-                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                  title="Hapus Lowongan"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+      {/* --- SUB TAB 1: EDIT LAYOUT CONTENT --- */}
+      {subTab === 'content' && (
+        <div className="animate-in fade-in duration-300">
+          {loadingContent || !content ? (
+            <div className="space-y-6">
+              <div className="h-40 bg-neutral-100 animate-pulse rounded-2xl"></div>
+              <div className="h-60 bg-neutral-100 animate-pulse rounded-2xl"></div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Form Modal */}
-      {editingJob && (
-        <div className="fixed inset-0 bg-neutral-950/70 flex items-center justify-center p-6 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl p-8 max-w-xl w-full shadow-2xl relative border border-neutral-100 animate-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setEditingJob(null)}
-              className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-600 cursor-pointer"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-
-            <form onSubmit={handleSave} className="space-y-6">
-              <div>
-                <span className="text-xs font-bold text-primary-600 uppercase tracking-wider block mb-1">Manajemen Karir</span>
-                <h3 className="text-2xl font-bold text-neutral-900">
-                  {editingJob.id ? 'Edit Lowongan Pekerjaan' : 'Tambah Lowongan Baru'}
+          ) : (
+            <form onSubmit={handleSaveContent} className="space-y-8">
+              {/* SECTION: HERO HEADER */}
+              <div className="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-3">
+                  <Sparkles className="text-primary-500" size={20} />
+                  Bagian Hero Banner Utama
                 </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Judul Banner (Hero Title)</label>
+                      <input
+                        required
+                        type="text"
+                        value={content.heroTitle}
+                        onChange={(e) => setContent({ ...content, heroTitle: e.target.value })}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
+                        placeholder="Contoh: Become Part of #MDKteam"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Sub-Judul (Hero Subtitle)</label>
+                      <input
+                        required
+                        type="text"
+                        value={content.heroSubtitle}
+                        onChange={(e) => setContent({ ...content, heroSubtitle: e.target.value })}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
+                        placeholder="Contoh: Bergabung dan Menjadi Inovator"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-neutral-700 uppercase tracking-wider">Gambar Latar Belakang (Hero Background)</label>
+                    <div className="flex gap-4 items-center">
+                      <div className="w-24 h-24 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-50 flex-shrink-0 relative">
+                        {content.heroBgUrl ? (
+                          <img src={content.heroBgUrl} alt="Hero Background" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-neutral-400"><ImageIcon size={24} /></div>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleImageChange(e, 'hero')}
+                          className="hidden"
+                          id="hero-bg-file"
+                        />
+                        <label
+                          htmlFor="hero-bg-file"
+                          className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-xl text-xs font-semibold cursor-pointer border border-neutral-300 transition-colors inline-block"
+                        >
+                          Pilih Gambar Baru
+                        </label>
+                        <p className="text-[10px] text-neutral-400 mt-1.5">Maks. 2MB, Rekomendasi rasio landscape 16:9.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Nama Posisi / Pekerjaan</label>
-                  <input
-                    required
-                    type="text"
-                    value={editingJob.title || ''}
-                    onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
-                    placeholder="Contoh: Drafter Furniture"
-                  />
-                </div>
+              {/* SECTION: EMPOWERING YOUR POTENTIAL */}
+              <div className="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-3">
+                  <Sparkles className="text-primary-500" size={20} />
+                  Bagian "Empowering Your Potential" (3 Kolom Kartu)
+                </h3>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Tipe Pekerjaan</label>
-                    <select
-                      value={editingJob.type || 'Full-Time'}
-                      onChange={(e) => setEditingJob({ ...editingJob, type: e.target.value })}
-                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
-                    >
-                      <option value="Full-Time">Full-Time</option>
-                      <option value="Part-Time">Part-Time</option>
-                      <option value="Contract">Contract</option>
-                      <option value="Internship">Internship</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Lokasi Workshop</label>
-                    <input
-                      required
-                      type="text"
-                      value={editingJob.loc || ''}
-                      onChange={(e) => setEditingJob({ ...editingJob, loc: e.target.value })}
-                      className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
-                      placeholder="Contoh: Bogor, ID"
-                    />
-                  </div>
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {content.potentials.map((item, index) => (
+                    <div key={index} className="p-5 bg-neutral-50 rounded-2xl border border-neutral-200/50 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                        <h4 className="font-bold text-neutral-800 text-sm">Kartu Keuntungan {index + 1}</h4>
+                      </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Deskripsi Singkat Lowongan</label>
-                  <textarea
-                    required
-                    rows={4}
-                    value={editingJob.desc || ''}
-                    onChange={(e) => setEditingJob({ ...editingJob, desc: e.target.value })}
-                    className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800 text-sm leading-relaxed resize-none"
-                    placeholder="Sebutkan tanggung jawab utama dan kualifikasi minimum..."
-                  />
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase">Judul Kartu</label>
+                        <input
+                          required
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handlePotentialChange(index, 'title', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg outline-none focus:ring-1 focus:ring-primary-500 text-xs text-neutral-800"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase">Deskripsi</label>
+                        <textarea
+                          required
+                          rows={3}
+                          value={item.desc}
+                          onChange={(e) => handlePotentialChange(index, 'desc', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg outline-none focus:ring-1 focus:ring-primary-500 text-xs text-neutral-600 resize-none leading-relaxed"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase">Visual Gambar</label>
+                        <div className="flex gap-3 items-center">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden border border-neutral-200 bg-white flex-shrink-0">
+                            {item.imgUrl ? (
+                              <img src={item.imgUrl} alt={item.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-neutral-400"><ImageIcon size={16} /></div>
+                            )}
+                          </div>
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handleImageChange(e, { type: 'potential', index })}
+                              className="hidden"
+                              id={`potential-img-file-${index}`}
+                            />
+                            <label
+                              htmlFor={`potential-img-file-${index}`}
+                              className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 text-neutral-700 rounded-lg text-[10px] font-semibold cursor-pointer border border-neutral-300 transition-colors inline-block"
+                            >
+                              Ganti Gambar
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 pt-4 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setEditingJob(null)}
-                  className="px-6 py-3 border border-neutral-200 hover:bg-neutral-50 rounded-xl text-sm font-bold text-neutral-600 transition-colors cursor-pointer"
-                >
-                  Batal
-                </button>
+              {/* SECTION: OUR CULTURE */}
+              <div className="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm space-y-6">
+                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-3">
+                  <Heart className="text-red-500" size={20} />
+                  Bagian "Our Culture" (Budaya Kerja MDK)
+                </h3>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {content.cultures.map((item, index) => (
+                    <div key={index} className="p-5 bg-neutral-50 rounded-2xl border border-neutral-200/50 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                        <h4 className="font-bold text-neutral-800 text-sm">Nilai Budaya {index + 1}</h4>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase">Judul Budaya</label>
+                        <input
+                          required
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleCultureChange(index, 'title', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg outline-none focus:ring-1 focus:ring-primary-500 text-xs text-neutral-800"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-neutral-500 mb-1 uppercase">Deskripsi Nilai</label>
+                        <textarea
+                          required
+                          rows={3}
+                          value={item.desc}
+                          onChange={(e) => handleCultureChange(index, 'desc', e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg outline-none focus:ring-1 focus:ring-primary-500 text-xs text-neutral-600 resize-none leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* SAVE BUTTON FOR CONTENT */}
+              <div className="flex justify-end pt-4">
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary-700 transition-colors disabled:opacity-75 cursor-pointer min-w-[140px]"
+                  disabled={savingContent}
+                  className="px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer flex items-center gap-2 min-w-[200px] justify-center"
                 >
-                  {saving ? <Loader2 className="animate-spin" size={18} /> : 'Simpan'}
+                  {savingContent ? <Loader2 className="animate-spin" size={18} /> : <><Save size={16} /> Simpan Konten Halaman</>}
                 </button>
               </div>
             </form>
+          )}
+        </div>
+      )}
+
+      {/* --- SUB TAB 2: ACTIVE JOB OPENINGS CRUD --- */}
+      {subTab === 'jobs' && (
+        <div className="animate-in fade-in duration-300 space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-lg font-bold text-neutral-900">Lowongan Pekerjaan Aktif</h3>
+              <p className="text-xs text-neutral-500">Postingan lowongan yang sedang tampil di halaman depan klien.</p>
+            </div>
+            <button
+              onClick={() => setEditingJob({ title: '', type: 'Full-Time', loc: 'Bogor, ID', desc: '' })}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold text-xs transition-colors shadow-sm cursor-pointer"
+            >
+              <Plus size={14} /> Lowongan Baru
+            </button>
           </div>
+
+          {loadingJobs ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-44 bg-neutral-100 animate-pulse rounded-2xl"></div>
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="bg-white border border-neutral-200 rounded-2xl p-12 text-center text-neutral-400">
+              <Briefcase className="mx-auto text-neutral-300 mb-3" size={36} />
+              <p className="font-semibold text-neutral-500">Belum ada lowongan pekerjaan aktif.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map((job) => (
+                <div key={job.id} className="bg-white p-5 rounded-2xl border border-neutral-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                  <div>
+                    <h4 className="font-bold text-neutral-900 text-base mb-1.5">{job.title}</h4>
+                    <div className="flex gap-3 text-[10px] text-neutral-500 font-medium mb-3">
+                      <span className="bg-neutral-50 px-2 py-0.5 rounded border border-neutral-200/60">{job.type}</span>
+                      <span className="flex items-center gap-1"><MapPin size={10} /> {job.loc}</span>
+                    </div>
+                    <p className="text-xs text-neutral-500 leading-relaxed line-clamp-3 mb-4">
+                      {job.desc}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end gap-1.5 border-t border-neutral-100 pt-3 mt-1">
+                    <button
+                      onClick={() => setEditingJob(job)}
+                      className="p-1.5 text-neutral-500 hover:text-primary-600 hover:bg-neutral-50 rounded-lg transition-colors cursor-pointer"
+                      title="Edit Lowongan"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteJob(job.id)}
+                      className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      title="Hapus Lowongan"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Job Opening CRUD Form Modal */}
+          {editingJob && (
+            <div className="fixed inset-0 bg-neutral-950/70 flex items-center justify-center p-6 z-50 animate-fade-in">
+              <div className="bg-white rounded-3xl p-8 max-w-xl w-full shadow-2xl relative border border-neutral-100 animate-in zoom-in-95 duration-200">
+                <button
+                  onClick={() => setEditingJob(null)}
+                  className="absolute top-6 right-6 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+
+                <form onSubmit={handleSaveJob} className="space-y-6">
+                  <div>
+                    <span className="text-xs font-bold text-primary-600 uppercase tracking-wider block mb-1">Manajemen Karir</span>
+                    <h3 className="text-xl font-bold text-neutral-900">
+                      {editingJob.id ? 'Edit Lowongan Pekerjaan' : 'Tambah Lowongan Baru'}
+                    </h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Nama Posisi / Pekerjaan</label>
+                      <input
+                        required
+                        type="text"
+                        value={editingJob.title || ''}
+                        onChange={(e) => setEditingJob({ ...editingJob, title: e.target.value })}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
+                        placeholder="Contoh: Drafter Furniture"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Tipe Pekerjaan</label>
+                        <select
+                          value={editingJob.type || 'Full-Time'}
+                          onChange={(e) => setEditingJob({ ...editingJob, type: e.target.value })}
+                          className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
+                        >
+                          <option value="Full-Time">Full-Time</option>
+                          <option value="Part-Time">Part-Time</option>
+                          <option value="Contract">Contract</option>
+                          <option value="Internship">Internship</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Lokasi Workshop</label>
+                        <input
+                          required
+                          type="text"
+                          value={editingJob.loc || ''}
+                          onChange={(e) => setEditingJob({ ...editingJob, loc: e.target.value })}
+                          className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800"
+                          placeholder="Contoh: Bogor, ID"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-neutral-700 mb-1.5 uppercase tracking-wider">Deskripsi Singkat Lowongan</label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={editingJob.desc || ''}
+                        onChange={(e) => setEditingJob({ ...editingJob, desc: e.target.value })}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 text-neutral-800 text-sm leading-relaxed resize-none"
+                        placeholder="Sebutkan tanggung jawab utama dan kualifikasi minimum..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-4 pt-4 border-t border-neutral-100">
+                    <button
+                      type="button"
+                      onClick={() => setEditingJob(null)}
+                      className="px-6 py-3 border border-neutral-200 hover:bg-neutral-50 rounded-xl text-sm font-bold text-neutral-600 transition-colors cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingJob}
+                      className="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary-700 transition-colors disabled:opacity-75 cursor-pointer min-w-[140px]"
+                    >
+                      {savingJob ? <Loader2 className="animate-spin" size={18} /> : 'Simpan'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

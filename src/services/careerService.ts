@@ -1,4 +1,4 @@
-import type { JobOpening, ApiResponse } from '../types';
+import type { JobOpening, CareerPageContent, ApiResponse } from '../types';
 
 const defaultJobOpenings: JobOpening[] = [
   {
@@ -24,6 +24,43 @@ const defaultJobOpenings: JobOpening[] = [
   }
 ];
 
+const defaultCareerContent: CareerPageContent = {
+  heroTitle: 'Become Part of #MDKteam',
+  heroSubtitle: 'Bergabung dan Menjadi Inovator',
+  heroBgUrl: 'https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80',
+  potentials: [
+    {
+      title: 'Growth Opportunities',
+      desc: 'Kesempatan belajar langsung dari pengrajin senior dan desainer interior profesional untuk meningkatkan keahlian Anda.',
+      imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500'
+    },
+    {
+      title: 'People First',
+      desc: 'Lingkungan kerja kekeluargaan yang suportif, aman, dan saling menghargai kontribusi setiap anggota tim.',
+      imgUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500'
+    },
+    {
+      title: 'Inspiring Community',
+      desc: 'Berkolaborasi bersama tim desainer kreatif dan produsen guna melahirkan produk furniture berkualitas tinggi.',
+      imgUrl: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500'
+    }
+  ],
+  cultures: [
+    {
+      title: 'Teamwork',
+      desc: 'Menyatukan keahlian desain dan presisi pengerjaan kayu guna menghadirkan kualitas produk furniture terbaik bagi klien.'
+    },
+    {
+      title: 'Integrity',
+      desc: 'Membangun kepercayaan melalui kejujuran bahan kayu asli, ketepatan waktu pengiriman, dan transparansi proses workshop.'
+    },
+    {
+      title: 'Innovation',
+      desc: 'Terus bereksperimen dengan metode perakitan modern, efisiensi bahan baku, serta detail konstruksi tahan lama.'
+    }
+  ]
+};
+
 const getMockJobOpenings = (): JobOpening[] => {
   const stored = localStorage.getItem('mockJobOpenings');
   if (stored) {
@@ -42,16 +79,33 @@ const saveMockJobOpenings = (data: JobOpening[]) => {
   localStorage.setItem('mockJobOpenings', JSON.stringify(data));
 };
 
+const getMockCareerContent = (): CareerPageContent => {
+  const stored = localStorage.getItem('mockCareerContent');
+  if (stored) {
+    try {
+      return JSON.parse(stored) as CareerPageContent;
+    } catch (e) {
+      console.error('Failed to parse mock career content', e);
+    }
+  }
+  localStorage.setItem('mockCareerContent', JSON.stringify(defaultCareerContent));
+  return defaultCareerContent;
+};
+
+const saveMockCareerContent = (data: CareerPageContent) => {
+  localStorage.setItem('mockCareerContent', JSON.stringify(data));
+};
+
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const careerService = {
   getJobOpenings: async (): Promise<ApiResponse<JobOpening[]>> => {
-    await delay(300);
+    await delay(200);
     return { data: getMockJobOpenings(), message: 'Success', status: 200 };
   },
 
   createJobOpening: async (data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    await delay(400);
+    await delay(300);
     const newJob: JobOpening = {
       ...data,
       id: Date.now()
@@ -63,7 +117,7 @@ export const careerService = {
   },
 
   updateJobOpening: async (id: number, data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    await delay(400);
+    await delay(300);
     const current = getMockJobOpenings();
     let updatedJob: JobOpening | null = null;
     const updatedList = current.map(job => {
@@ -81,9 +135,20 @@ export const careerService = {
   },
 
   deleteJobOpening: async (id: number): Promise<ApiResponse<null>> => {
-    await delay(300);
+    await delay(200);
     const filtered = getMockJobOpenings().filter(job => job.id !== id);
     saveMockJobOpenings(filtered);
     return { data: null, message: 'Deleted successfully', status: 200 };
+  },
+
+  getCareerContent: async (): Promise<ApiResponse<CareerPageContent>> => {
+    await delay(200);
+    return { data: getMockCareerContent(), message: 'Success', status: 200 };
+  },
+
+  updateCareerContent: async (data: CareerPageContent): Promise<ApiResponse<CareerPageContent>> => {
+    await delay(300);
+    saveMockCareerContent(data);
+    return { data, message: 'Career page content updated successfully', status: 200 };
   }
 };
