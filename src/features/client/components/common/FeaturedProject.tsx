@@ -50,7 +50,7 @@ const defaultProjectsList: Project[] = [
     id: 3, 
     title: 'Luxury Villa Bali', 
     description: 'Desain villa peristirahatan tropis modern yang terintegrasi langsung dengan keindahan alam sekitarnya. Dilengkapi infinity pool luas dengan dek kayu ulin berkualitas tinggi, dinding batu paras Jogja yang elegan, serta sirkulasi udara silang maksimal.', 
-    imageUrl: 'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800', 
+    imageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800', 
     isFeatured: true, 
     categories: ['rumah tropis modern'],
     materials: 'Batu Paras Jogja, Kayu Ulin Kalimantan, Atap Alang-alang Premium, Kaca Frameless Tempered, Lantai Teraso',
@@ -58,7 +58,7 @@ const defaultProjectsList: Project[] = [
     year: 2025,
     clientName: 'Mrs. Sarah Jenkins',
     galleryImages: [
-      'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800',
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'
     ]
   }

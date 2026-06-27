@@ -6,7 +6,7 @@ const defaultHeroBanner: HeroBanner = {
   title: 'Eksplorasi Ruang dan Estetika Bersama Mitra Daya Kreasi',
   subtitle: 'Wujudkan Desain Impian',
   description: 'Dari arsitektur modern hingga interior tropis, kami membawa visi Anda menjadi kenyataan dengan sentuhan profesional yang tak lekang oleh waktu.',
-  backgroundImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920'
+  backgroundImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920'
 };
 
 export const homeService = {

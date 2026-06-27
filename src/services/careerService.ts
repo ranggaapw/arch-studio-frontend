@@ -71,27 +71,71 @@ const defaultCareerContent: CareerPageContent = {
   ]
 };
 
+const mapJobOpeningFromApi = (j: any): JobOpening => {
+  if (!j) return {} as JobOpening;
+  return {
+    id: j.id,
+    title: j.title || j.judul || j.jobTitle || '',
+    type: j.type || j.tipe || j.jobType || '',
+    loc: j.loc || j.lokasi || j.location || '',
+    desc: j.desc || j.deskripsi || j.description || ''
+  };
+};
+
+const mapJobOpeningToApi = (j: any) => {
+  return {
+    id: j.id,
+    title: j.title,
+    judul: j.title,
+    jobTitle: j.title,
+    type: j.type,
+    tipe: j.type,
+    jobType: j.type,
+    loc: j.loc,
+    lokasi: j.loc,
+    location: j.loc,
+    desc: j.desc,
+    deskripsi: j.desc,
+    description: j.desc
+  };
+};
+
 export const careerService = {
   getJobOpenings: async (): Promise<ApiResponse<JobOpening[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<JobOpening[]>>('/api/jobs');
-      if (!response.data || !response.data.data || response.data.data.length === 0) {
+      const response = await axiosClient.get('/api/jobs');
+      const resVal = response.data?.data !== undefined ? response.data.data : response.data;
+      
+      let rawList: any[] = [];
+      if (Array.isArray(resVal)) {
+        rawList = resVal;
+      } else if (resVal && typeof resVal === 'object') {
+        rawList = [resVal];
+      }
+      
+      if (rawList.length === 0) {
         console.log("Seeding default job openings to DB...");
         const seededList: JobOpening[] = [];
         for (const j of defaultJobOpenings) {
-          const res = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', j);
-          seededList.push(res.data.data);
+          const apiPayload = mapJobOpeningToApi(j);
+          const res = await axiosClient.post('/api/jobs', apiPayload);
+          const resData = res.data?.data || res.data;
+          seededList.push(mapJobOpeningFromApi(resData));
         }
         return { data: seededList, message: 'Seeded successfully', status: 200 };
       }
-      return response.data;
+      
+      const mappedList = rawList.map(mapJobOpeningFromApi);
+      return { data: mappedList, message: 'Success', status: 200 };
     } catch (e) {
       console.warn("API empty, seeding default jobs...", e);
       try {
         const seededList: JobOpening[] = [];
         for (const j of defaultJobOpenings) {
-          const res = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', j);
-          seededList.push(res.data.data);
+          const apiPayload = mapJobOpeningToApi(j);
+          const res = await axiosClient.post('/api/jobs', apiPayload);
+          const resData = res.data?.data || res.data;
+          seededList.push(mapJobOpeningFromApi(resData));
         }
         return { data: seededList, message: 'Seeded fallback', status: 200 };
       } catch (err) {
@@ -102,34 +146,41 @@ export const careerService = {
   },
 
   createJobOpening: async (data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    const response = await axiosClient.post<ApiResponse<JobOpening>>('/api/jobs', data);
-    return response.data;
+    const apiPayload = mapJobOpeningToApi(data);
+    const response = await axiosClient.post('/api/jobs', apiPayload);
+    const resData = response.data?.data || response.data;
+    return { data: mapJobOpeningFromApi(resData), message: 'Created successfully', status: 201 };
   },
 
   updateJobOpening: async (id: number, data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
-    const response = await axiosClient.put<ApiResponse<JobOpening>>(`/api/jobs/${id}`, data);
-    return response.data;
+    const apiPayload = mapJobOpeningToApi(data);
+    const response = await axiosClient.put(`/api/jobs/${id}`, apiPayload);
+    const resData = response.data?.data || response.data;
+    return { data: mapJobOpeningFromApi(resData), message: 'Updated successfully', status: 200 };
   },
 
   deleteJobOpening: async (id: number): Promise<ApiResponse<null>> => {
-    const response = await axiosClient.delete<ApiResponse<null>>(`/api/jobs/${id}`);
-    return response.data;
+    await axiosClient.delete(`/api/jobs/${id}`);
+    return { data: null, message: 'Deleted successfully', status: 200 };
   },
 
   getCareerContent: async (): Promise<ApiResponse<CareerPageContent>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<CareerPageContent>>('/api/career/settings');
-      if (!response.data || !response.data.data || !response.data.data.heroTitle) {
+      const response = await axiosClient.get('/api/career/settings');
+      const resData = response.data?.data || response.data;
+      if (!resData || !resData.heroTitle) {
         // Seed database
-        const seedRes = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', defaultCareerContent);
-        return seedRes.data;
+        const seedRes = await axiosClient.put('/api/career/settings', defaultCareerContent);
+        const seedData = seedRes.data?.data || seedRes.data;
+        return { data: seedData, message: 'Seeded settings', status: 200 };
       }
-      return response.data;
+      return { data: resData, message: 'Success', status: 200 };
     } catch (e) {
       console.warn("API empty, seeding default career settings...", e);
       try {
-        const seedRes = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', defaultCareerContent);
-        return seedRes.data;
+        const seedRes = await axiosClient.put('/api/career/settings', defaultCareerContent);
+        const seedData = seedRes.data?.data || seedRes.data;
+        return { data: seedData, message: 'Seeded fallback', status: 200 };
       } catch (err) {
         return { data: defaultCareerContent, message: 'Fallback', status: 200 };
       }
@@ -137,7 +188,8 @@ export const careerService = {
   },
 
   updateCareerContent: async (data: CareerPageContent): Promise<ApiResponse<CareerPageContent>> => {
-    const response = await axiosClient.put<ApiResponse<CareerPageContent>>('/api/career/settings', data);
-    return response.data;
+    const response = await axiosClient.put('/api/career/settings', data);
+    const resData = response.data?.data || response.data;
+    return { data: resData, message: 'Updated successfully', status: 200 };
   }
 };

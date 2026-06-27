@@ -5,7 +5,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
   { 
     title: 'Modern Minimalist House', 
     description: 'Desain rumah arsitektur minimalis yang memaksimalkan sirkulasi cahaya alami dan fungsionalitas ruang di pusat perkotaan padat. Menggunakan tata ruang terbuka (open plan) untuk memberikan kesan lapang dan koneksi antar ruang yang harmonis.', 
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800', 
+    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800', 
     isFeatured: true, 
     categories: ['minimalis modern'],
     materials: 'Beton Ekspos, Kaca Tempered, Kayu Jati Solid, Baja Hitam, Cat Anti-UV Premium',
@@ -13,7 +13,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
     year: 2024,
     clientName: 'Bapak Ronald Sitorus',
     galleryImages: [
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
       'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800'
     ]
@@ -36,7 +36,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
   { 
     title: 'Luxury Villa Bali', 
     description: 'Desain villa peristirahatan tropis modern yang terintegrasi langsung dengan keindahan alam sekitarnya. Dilengkapi infinity pool luas dengan dek kayu ulin berkualitas tinggi, dinding batu paras Jogja yang elegan, serta sirkulasi udara silang maksimal.', 
-    imageUrl: 'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800', 
+    imageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800', 
     isFeatured: true, 
     categories: ['rumah tropis modern'],
     materials: 'Batu Paras Jogja, Kayu Ulin Kalimantan, Atap Alang-alang Premium, Kaca Frameless Tempered, Lantai Teraso',
@@ -44,7 +44,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
     year: 2025,
     clientName: 'Mrs. Sarah Jenkins',
     galleryImages: [
-      'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800',
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'
     ]
   },
@@ -81,12 +81,17 @@ const defaultProjects: Omit<Project, 'id'>[] = [
 ];
 
 const getValidImageUrl = (url?: string) => {
-  if (!url || typeof url !== 'string') return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800';
+  if (!url || typeof url !== 'string') return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
   const cleanUrl = url.trim();
-  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image/')) {
+  // Support Base64 data URIs
+  if (cleanUrl.startsWith('data:image/')) {
     return cleanUrl;
   }
-  return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800';
+  // If it's not from Unsplash, fall back to our working Unsplash image to avoid broken remote paths in DB
+  if (!cleanUrl.includes('unsplash.com')) {
+    return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800';
+  }
+  return cleanUrl;
 };
 
 const mapProjectFromApi = (apiProj: any): Project => {
@@ -137,7 +142,7 @@ const mapProjectFromApi = (apiProj: any): Project => {
       primaryImg,
       'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
       'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800',
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800'
     ];
   } else {
     fallbackGallery = [
@@ -198,7 +203,14 @@ export const projectService = {
   getProjects: async (): Promise<ApiResponse<Project[]>> => {
     try {
       const response = await axiosClient.get('/api/projects');
-      const rawList = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      const resVal = response.data?.data !== undefined ? response.data.data : response.data;
+      
+      let rawList: any[] = [];
+      if (Array.isArray(resVal)) {
+        rawList = resVal;
+      } else if (resVal && typeof resVal === 'object') {
+        rawList = [resVal];
+      }
       
       const mappedList = rawList.map(mapProjectFromApi);
 

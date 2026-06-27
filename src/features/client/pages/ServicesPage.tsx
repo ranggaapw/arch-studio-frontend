@@ -113,7 +113,12 @@ export default function ServicesPage() {
                 >
                   {/* Gunakan random placeholder image berdasarkan index jika tidak ada imageUrl */}
                   <img 
-                    src={service.imageUrl || `https://images.unsplash.com/photo-${1600585154340 + index}-be6161a56a0c?w=800`} 
+                    src={service.imageUrl || [
+                      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+                      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
+                      'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800',
+                      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800'
+                    ][index % 4]} 
                     alt={service.title} 
                     className="w-full h-full object-cover"
                   />
