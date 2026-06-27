@@ -216,12 +216,13 @@ export const projectService = {
 
       if (mappedList.length < 5) {
         console.log("Database contains less than 5 projects, seeding additional defaults...");
-        // Add the missing projects from defaultProjects list
         const seededList = [...mappedList];
-        const startIndex = mappedList.length;
         
-        for (let i = startIndex; i < 5; i++) {
-          const defaultProj = defaultProjects[i % defaultProjects.length];
+        for (let i = 0; i < defaultProjects.length; i++) {
+          const defaultProj = defaultProjects[i];
+          const exists = seededList.some(p => p.title.toLowerCase().trim() === defaultProj.title.toLowerCase().trim());
+          if (exists) continue;
+
           try {
             const apiPayload = mapProjectToApi(defaultProj);
             const res = await axiosClient.post('/api/projects', apiPayload);

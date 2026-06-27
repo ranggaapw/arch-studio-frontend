@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MapPin, Briefcase, Loader2, Save, Image as ImageIcon, Sparkles, Heart } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin, Briefcase, Loader2, Save, Image as ImageIcon, Sparkles, Heart, X } from 'lucide-react';
 import { careerService } from '../../../services/careerService';
 import type { JobOpening, CareerPageContent, PotentialItem, CultureItem } from '../../../types';
 
@@ -28,7 +28,10 @@ export default function CareerManager() {
       ]);
       setJobs(jobsRes?.data || []);
       
-      const rawContent = (contentRes?.data || {}) as any;
+      let rawContent = contentRes?.data || {};
+      if (Array.isArray(rawContent)) {
+        rawContent = rawContent[0] || {};
+      }
       
       const parseSafe = (val: any, fallback: any) => {
         if (!val) return fallback;
@@ -43,41 +46,26 @@ export default function CareerManager() {
         return val;
       };
 
+      const defaultPotentials = [
+        { title: 'Growth Opportunities', desc: 'Kesempatan belajar langsung dari pengrajin senior dan desainer interior profesional untuk meningkatkan keahlian Anda.', imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500' },
+        { title: 'People First', desc: 'Lingkungan kerja kekeluargaan yang suportif, aman, dan saling menghargai kontribusi setiap anggota tim.', imgUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500' },
+        { title: 'Inspiring Community', desc: 'Berkolaborasi bersama tim desainer kreatif dan produsen guna melahirkan produk furniture berkualitas tinggi.', imgUrl: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500' }
+      ];
+      const defaultCultures = [
+        { title: 'Teamwork', desc: 'Menyatukan keahlian desain dan presisi pengerjaan kayu guna menghadirkan kualitas produk furniture terbaik bagi klien.' },
+        { title: 'Integrity', desc: 'Membangun kepercayaan melalui kejujuran bahan kayu asli, ketepatan waktu pengiriman, dan transparansi proses workshop.' },
+        { title: 'Innovation', desc: 'Terus bereksperimen dengan metode perakitan modern, efisiensi bahan baku, serta detail konstruksi tahan lama.' }
+      ];
+
+      const parsedPotentials = parseSafe(rawContent.potentials, null);
+      const parsedCultures = parseSafe(rawContent.cultures, null);
+
       setContent({
         heroTitle: rawContent.heroTitle || 'Become Part of #MDKteam',
         heroSubtitle: rawContent.heroSubtitle || 'Bergabung dan Menjadi Inovator',
         heroBgUrl: rawContent.heroBgUrl || 'https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80',
-        potentials: parseSafe(rawContent.potentials, [
-          {
-            title: 'Growth Opportunities',
-            desc: 'Kesempatan belajar langsung dari pengrajin senior dan desainer interior profesional untuk meningkatkan keahlian Anda.',
-            imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500'
-          },
-          {
-            title: 'People First',
-            desc: 'Lingkungan kerja kekeluargaan yang suportif, aman, dan saling menghargai kontribusi setiap anggota tim.',
-            imgUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500'
-          },
-          {
-            title: 'Inspiring Community',
-            desc: 'Berkolaborasi bersama tim desainer kreatif dan produsen guna melahirkan produk furniture berkualitas tinggi.',
-            imgUrl: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500'
-          }
-        ]),
-        cultures: parseSafe(rawContent.cultures, [
-          {
-            title: 'Teamwork',
-            desc: 'Menyatukan keahlian desain dan presisi pengerjaan kayu guna menghadirkan kualitas produk furniture terbaik bagi klien.'
-          },
-          {
-            title: 'Integrity',
-            desc: 'Membangun kepercayaan melalui kejujuran bahan kayu asli, ketepatan waktu pengiriman, dan transparansi proses workshop.'
-          },
-          {
-            title: 'Innovation',
-            desc: 'Terus bereksperimen dengan metode perakitan modern, efisiensi bahan baku, serta detail konstruksi tahan lama.'
-          }
-        ])
+        potentials: (Array.isArray(parsedPotentials) && parsedPotentials.length > 0) ? parsedPotentials : defaultPotentials,
+        cultures: (Array.isArray(parsedCultures) && parsedCultures.length > 0) ? parsedCultures : defaultCultures
       });
     } catch (error) {
       console.error('Failed to fetch career data', error);
@@ -175,12 +163,32 @@ export default function CareerManager() {
     setContent({ ...content, potentials: updated });
   };
 
+  const handleAddPotential = () => {
+    if (!content) return;
+    setContent({ ...content, potentials: [...content.potentials, { title: '', desc: '', imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500' }] });
+  };
+
+  const handleRemovePotential = (index: number) => {
+    if (!content || content.potentials.length <= 1) return;
+    setContent({ ...content, potentials: content.potentials.filter((_, i) => i !== index) });
+  };
+
   // Culture item inputs change helper
   const handleCultureChange = (index: number, field: keyof CultureItem, value: string) => {
     if (!content) return;
     const updated = [...content.cultures];
     updated[index] = { ...updated[index], [field]: value };
     setContent({ ...content, cultures: updated });
+  };
+
+  const handleAddCulture = () => {
+    if (!content) return;
+    setContent({ ...content, cultures: [...content.cultures, { title: '', desc: '' }] });
+  };
+
+  const handleRemoveCulture = (index: number) => {
+    if (!content || content.cultures.length <= 1) return;
+    setContent({ ...content, cultures: content.cultures.filter((_, i) => i !== index) });
   };
 
   return (
@@ -289,17 +297,29 @@ export default function CareerManager() {
 
               {/* SECTION: EMPOWERING YOUR POTENTIAL */}
               <div className="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm space-y-6">
-                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-3">
-                  <Sparkles className="text-primary-500" size={20} />
-                  Bagian "Empowering Your Potential" (3 Kolom Kartu)
-                </h3>
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                  <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                    <Sparkles className="text-primary-500" size={20} />
+                    Bagian "Empowering Your Potential"
+                  </h3>
+                  <button type="button" onClick={handleAddPotential} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-lg text-xs font-semibold cursor-pointer border border-primary-200 transition-colors">
+                    <Plus size={12} /> Tambah Kartu
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {content.potentials.map((item, index) => (
                     <div key={index} className="p-5 bg-neutral-50 rounded-2xl border border-neutral-200/50 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                        <h4 className="font-bold text-neutral-800 text-sm">Kartu Keuntungan {index + 1}</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                          <h4 className="font-bold text-neutral-800 text-sm">Kartu {index + 1}</h4>
+                        </div>
+                        {content.potentials.length > 1 && (
+                          <button type="button" onClick={() => handleRemovePotential(index)} className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer" title="Hapus kartu ini">
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
 
                       <div>
@@ -358,17 +378,29 @@ export default function CareerManager() {
 
               {/* SECTION: OUR CULTURE */}
               <div className="bg-white p-6 md:p-8 rounded-2xl border border-neutral-200 shadow-sm space-y-6">
-                <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2 border-b border-neutral-100 pb-3">
-                  <Heart className="text-red-500" size={20} />
-                  Bagian "Our Culture" (Budaya Kerja MDK)
-                </h3>
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                  <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+                    <Heart className="text-red-500" size={20} />
+                    Bagian "Our Culture" (Budaya Kerja MDK)
+                  </h3>
+                  <button type="button" onClick={handleAddCulture} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-xs font-semibold cursor-pointer border border-red-200 transition-colors">
+                    <Plus size={12} /> Tambah Nilai
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   {content.cultures.map((item, index) => (
                     <div key={index} className="p-5 bg-neutral-50 rounded-2xl border border-neutral-200/50 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                        <h4 className="font-bold text-neutral-800 text-sm">Nilai Budaya {index + 1}</h4>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                          <h4 className="font-bold text-neutral-800 text-sm">Nilai Budaya {index + 1}</h4>
+                        </div>
+                        {content.cultures.length > 1 && (
+                          <button type="button" onClick={() => handleRemoveCulture(index)} className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer" title="Hapus nilai ini">
+                            <X size={14} />
+                          </button>
+                        )}
                       </div>
 
                       <div>

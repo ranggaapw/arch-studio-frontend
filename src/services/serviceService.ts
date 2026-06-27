@@ -38,21 +38,39 @@ export const serviceService = {
   getServices: async (): Promise<ApiResponse<Service[]>> => {
     try {
       const response = await axiosClient.get('/api/services');
-      const rawList = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+      const resVal = response.data?.data !== undefined ? response.data.data : response.data;
       
-      if (rawList.length === 0) {
-        console.log("Seeding default services to DB...");
-        const seededList: Service[] = [];
-        for (const s of defaultServices) {
-          const apiPayload = mapServiceToApi(s);
-          const res = await axiosClient.post('/api/services', apiPayload);
-          const resData = res.data?.data || res.data;
-          seededList.push(mapServiceFromApi(resData));
-        }
-        return { data: seededList, message: 'Seeded successfully', status: 200 };
+      let rawList: any[] = [];
+      if (Array.isArray(resVal)) {
+        rawList = resVal;
+      } else if (resVal && typeof resVal === 'object') {
+        rawList = [resVal];
       }
       
       const mappedList = rawList.map(mapServiceFromApi);
+
+      // Verify and seed only missing default services
+      const seededList = [...mappedList];
+      let needsSeed = false;
+      
+      for (const s of defaultServices) {
+        const exists = seededList.some(existing => existing.title.toLowerCase().trim() === s.title.toLowerCase().trim());
+        if (!exists) {
+          needsSeed = true;
+          try {
+            const apiPayload = mapServiceToApi(s);
+            const res = await axiosClient.post('/api/services', apiPayload);
+            const resData = res.data?.data || res.data;
+            seededList.push(mapServiceFromApi(resData));
+          } catch (postErr) {
+            console.error("Failed to seed service to DB", postErr);
+          }
+        }
+      }
+
+      if (needsSeed) {
+        return { data: seededList, message: 'Seeded successfully', status: 200 };
+      }
       return { data: mappedList, message: 'Success', status: 200 };
     } catch (e) {
       console.warn("API empty, seeding default services...", e);
