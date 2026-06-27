@@ -172,7 +172,7 @@ export default function FeaturedProject() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-neutral-950/85 backdrop-blur-md"
+              className="fixed inset-0 bg-neutral-950/80"
               onClick={() => setSelectedItem(null)}
             />
 
@@ -182,7 +182,7 @@ export default function FeaturedProject() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 30 }}
               transition={{ type: "spring", damping: 25, stiffness: 180 }}
-              className="relative w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] border border-neutral-100"
+              className="relative w-full max-w-7xl md:w-[94vw] bg-white rounded-3xl shadow-2xl overflow-hidden z-10 flex flex-col md:flex-row max-h-[95vh] md:max-h-[90vh] border border-neutral-100"
             >
               {/* Close Button */}
               <button 
@@ -193,9 +193,9 @@ export default function FeaturedProject() {
               </button>
 
               {/* Kiri: Gallery Area */}
-              <div className="w-full md:w-[55%] p-6 md:p-8 flex flex-col justify-between bg-neutral-50/50 border-r border-neutral-100 max-h-[50vh] md:max-h-full">
+              <div className="w-full md:w-[60%] p-6 md:p-8 flex flex-col justify-between bg-neutral-50/50 border-r border-neutral-100 max-h-[50vh] md:max-h-full">
                 {/* Main Large Display Image */}
-                <div className="flex-1 relative rounded-2xl overflow-hidden bg-neutral-100 flex items-center justify-center group h-[250px] md:h-[400px]">
+                <div className="flex-1 relative rounded-2xl overflow-hidden bg-neutral-100 flex items-center justify-center group h-[250px] md:h-[450px] lg:h-[500px]">
                   <motion.img 
                     key={activeImageIndex}
                     initial={{ opacity: 0.5 }}
@@ -232,7 +232,7 @@ export default function FeaturedProject() {
               </div>
 
               {/* Kanan: Specifications Info Area */}
-              <div className="w-full md:w-[45%] p-6 md:p-8 flex flex-col justify-between overflow-y-auto max-h-[45vh] md:max-h-full">
+              <div className="w-full md:w-[40%] p-6 md:p-8 flex flex-col justify-between overflow-y-auto max-h-[45vh] md:max-h-full">
                 <div>
                   {/* Category Badge */}
                   <div className="flex flex-wrap gap-1.5 mb-3.5">

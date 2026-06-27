@@ -1,6 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   return (
     <nav className="w-full bg-white shadow-arch-lg px-8 py-4 flex items-center justify-between sticky top-0 z-50">
       {/* Logo Area (Diubah menjadi Link ke Home) */}
@@ -12,11 +15,37 @@ export default function Navbar() {
       </Link>
 
       {/* Navigation Links */}
-      <div className="hidden md:flex items-center gap-8 text-body-md-medium text-neutral-600">
-        {/* Ubah to="/" menjadi to="/services" di link Layanan */}
-        <Link to="/portfolio" className="hover:text-primary-600 transition-colors">Portofolio</Link>
-        <Link to="/services" className="hover:text-primary-600 transition-colors">Layanan</Link>
-        <Link to="/about" className="hover:text-primary-600 transition-colors">Tentang Kami</Link>
+      <div className="hidden md:flex items-center gap-8 text-body-md-medium">
+        <Link 
+          to="/portfolio" 
+          className={`transition-colors ${
+            currentPath === '/portfolio' 
+              ? 'text-primary-600 font-bold' 
+              : 'text-neutral-600 hover:text-primary-600'
+          }`}
+        >
+          Portofolio
+        </Link>
+        <Link 
+          to="/services" 
+          className={`transition-colors ${
+            currentPath === '/services' 
+              ? 'text-primary-600 font-bold' 
+              : 'text-neutral-600 hover:text-primary-600'
+          }`}
+        >
+          Layanan
+        </Link>
+        <Link 
+          to="/about" 
+          className={`transition-colors ${
+            currentPath === '/about' 
+              ? 'text-primary-600 font-bold' 
+              : 'text-neutral-600 hover:text-primary-600'
+          }`}
+        >
+          Tentang Kami
+        </Link>
       </div>
 
       {/* CTA Button */}

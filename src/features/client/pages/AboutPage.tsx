@@ -6,6 +6,7 @@ import {Mouse } from 'lucide-react';
 import CtaSection from '../components/common/CtaSection';
 import { useQuery } from '@tanstack/react-query';
 import { aboutService } from '../../../services/aboutService';
+import { projectService } from '../../../services/projectService';
 
 // Data untuk Why Choose Us
 const reasons = [
@@ -43,8 +44,14 @@ export default function AboutPage() {
     queryKey: ['about'],
     queryFn: () => aboutService.getAboutInfo()
   });
+
+  const { data: projectsResponse } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectService.getProjects()
+  });
   
   const about = aboutResponse?.data;
+  const projects = projectsResponse?.data || [];
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
@@ -200,11 +207,11 @@ export default function AboutPage() {
         {/* Auto-scrolling Carousel CSS Trick */}
         <div className="relative w-full flex overflow-x-hidden group">
           <div className="flex space-x-8 px-4 animate-marquee whitespace-nowrap group-hover:pause">
-            {[...featuredImages, ...featuredImages].map((img, index) => (
+            {(projects.length > 0 ? [...projects, ...projects] : []).map((project, index) => (
               <div key={index} className="inline-block w-80 md:w-96 h-[400px] rounded-2xl overflow-hidden shadow-lg flex-shrink-0 relative">
-                <img src={img} alt={`Featured ${index}`} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110" />
+                <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                  <p className="text-white font-bold text-lg">Project Highlights</p>
+                  <p className="text-white font-bold text-lg whitespace-normal leading-snug">{project.title}</p>
                 </div>
               </div>
             ))}
