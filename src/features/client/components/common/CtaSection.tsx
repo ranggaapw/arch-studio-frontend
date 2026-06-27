@@ -1,8 +1,8 @@
-import { ArrowRight, Mail } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default function CtaSection() {
   return (
-    <section className="w-full bg-white pt-24 border-t border-neutral-100">
+    <section className="w-full bg-white pt-24 pb-28 border-t border-neutral-100">
       <div className="max-w-7xl mx-auto px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-16 mb-24">
           <div className="w-full md:w-1/2">
@@ -27,27 +27,6 @@ export default function CtaSection() {
             <div className="absolute bottom-0 left-10 w-60 h-72 rounded-2xl overflow-hidden shadow-2xl transform -rotate-6 border-8 border-white transition-transform hover:rotate-0 duration-500 z-10">
               <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d" alt="Inspirasi 2" className="w-full h-full object-cover" />
             </div>
-          </div>
-        </div>
-      </div>
-      <div className="w-full bg-neutral-50 py-16 border-t border-neutral-100">
-        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="md:w-1/2 text-center md:text-left">
-            <h3 className="text-h3-bold text-neutral-900 mb-2">Tetap Terhubung</h3>
-            <h4 className="text-h4-bold text-neutral-500">dengan Email Newsletter Kami</h4>
-          </div>
-          <div className="w-full md:w-1/2 flex flex-col sm:flex-row items-center gap-4">
-            <div className="relative w-full">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
-              <input 
-                type="email" 
-                placeholder="Masukkan alamat email Anda" 
-                className="w-full pl-12 pr-4 py-4 rounded-xl border border-neutral-200 focus:outline-none focus:border-primary-600 focus:ring-1 focus:ring-primary-600 transition-all bg-white" 
-              />
-            </div>
-            <button className="w-full sm:w-auto px-8 py-4 bg-primary-900 text-white rounded-xl text-body-md-bold hover:bg-primary-800 transition-colors whitespace-nowrap cursor-pointer">
-              Berlangganan
-            </button>
           </div>
         </div>
       </div>
