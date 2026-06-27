@@ -19,6 +19,18 @@ const defaultJobOpenings: Omit<JobOpening, 'id'>[] = [
     type: 'Full-Time',
     loc: 'Bogor, ID',
     desc: 'Membantu pengamplasan, pendempulan, dan aplikasi spray melamine/duco berkualitas tinggi.'
+  },
+  {
+    title: 'Desainer Interior & 3D Visualizer',
+    type: 'Full-Time',
+    loc: 'Bogor, ID',
+    desc: 'Membuat konsep layout interior dan memvisualisasikan rancangan furniture custom dalam bentuk 3D Render fotorealistik menggunakan SketchUp/Vray.'
+  },
+  {
+    title: 'Quality Control (QC) & Supervisor Workshop',
+    type: 'Full-Time',
+    loc: 'Bogor, ID',
+    desc: 'Mengawasi jalannya proses perakitan, memastikan kualitas finishing kayu sesuai standar, serta mengontrol ketepatan dimensi furniture sebelum kirim.'
   }
 ];
 

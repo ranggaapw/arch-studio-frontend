@@ -15,8 +15,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
     galleryImages: [
       'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
-      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800'
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800'
     ]
   },
   { 
@@ -31,9 +30,7 @@ const defaultProjects: Omit<Project, 'id'>[] = [
     clientName: 'Kopi Nemu Group',
     galleryImages: [
       'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
-      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800',
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
-      'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=800'
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800'
     ]
   },
   { 
@@ -48,27 +45,136 @@ const defaultProjects: Omit<Project, 'id'>[] = [
     clientName: 'Mrs. Sarah Jenkins',
     galleryImages: [
       'https://images.unsplash.com/photo-1613490908578-83141f6cb65f?w=800',
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-      'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800',
-      'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800'
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'
     ]
   },
+  { 
+    title: 'Scandinavian Penthouse', 
+    description: 'Penthouse elegan dengan desain interior khas Skandinavia yang mengutamakan kesederhanaan, kehangatan, dan efisiensi ruang. Menampilkan lantai kayu oak alami, furnitur minimalis fungsional, dan pencahayaan hangat.', 
+    imageUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800', 
+    isFeatured: true, 
+    categories: ['minimalis modern'],
+    materials: 'Kayu Oak Putih, Kain Linen Premium, Baja Ringan Putih, Cat Eco-Friendly',
+    location: 'Kemang, Jakarta Selatan',
+    year: 2024,
+    clientName: 'Ibu Natalia Wijaya',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'
+    ]
+  },
+  { 
+    title: 'Classic European Residence', 
+    description: 'Desain tempat tinggal bergaya klasik Eropa dengan pilar-pilar megah, molding dinding detail, dan dekorasi lampu kristal mewah. Menghadirkan atmosfer klasik yang anggun, berwibawa, dan tak lekang oleh waktu.', 
+    imageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800', 
+    isFeatured: true, 
+    categories: ['klasik'],
+    materials: 'Marmer Carrara, Molding Gypsum Custom, Kuningan Asli, Kayu Mahoni Ukir, Cat Beludru Premium',
+    location: 'Menteng, Jakarta Pusat',
+    year: 2023,
+    clientName: 'Bapak Haryanto Prabowo',
+    galleryImages: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800'
+    ]
+  }
 ];
+
+const getValidImageUrl = (url?: string) => {
+  if (!url || typeof url !== 'string') return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800';
+  const cleanUrl = url.trim();
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:image/')) {
+    return cleanUrl;
+  }
+  return 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800';
+};
 
 const mapProjectFromApi = (apiProj: any): Project => {
   if (!apiProj) return {} as Project;
+  
+  // Dynamic fallback category mapping if categories from DB is empty
+  let fallbackCategories: string[] = [];
+  const title = (apiProj.judul || apiProj.title || '').toLowerCase();
+  if (title.includes('minimalist') || title.includes('penthouse')) {
+    fallbackCategories = ['minimalis modern'];
+  } else if (title.includes('coffee') || title.includes('shop') || title.includes('urban')) {
+    fallbackCategories = ['industrial'];
+  } else if (title.includes('villa') || title.includes('bali') || title.includes('tropis')) {
+    fallbackCategories = ['rumah tropis modern'];
+  } else if (title.includes('classic') || title.includes('europe') || title.includes('residence')) {
+    fallbackCategories = ['klasik'];
+  } else {
+    fallbackCategories = ['minimalis modern'];
+  }
+
+  const rawImg = apiProj.image_url || apiProj.imageUrl;
+  const primaryImg = getValidImageUrl(rawImg);
+
+  let fallbackGallery = [primaryImg];
+  if (title.includes('minimalist') || title.includes('penthouse') || title.includes('minimalis')) {
+    fallbackGallery = [
+      primaryImg,
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
+      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800'
+    ];
+  } else if (title.includes('coffee') || title.includes('shop') || title.includes('urban') || title.includes('industrial') || title.includes('workshop')) {
+    fallbackGallery = [
+      primaryImg,
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800',
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
+      'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=800'
+    ];
+  } else if (title.includes('villa') || title.includes('bali') || title.includes('tropis') || title.includes('bogor') || title.includes('house')) {
+    fallbackGallery = [
+      primaryImg,
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
+      'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800',
+      'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800'
+    ];
+  } else if (title.includes('classic') || title.includes('europe') || title.includes('residence') || title.includes('klasik')) {
+    fallbackGallery = [
+      primaryImg,
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
+      'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'
+    ];
+  } else {
+    fallbackGallery = [
+      primaryImg,
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
+      'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800',
+      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800'
+    ];
+  }
+
+  let parsedGallery: any = null;
+  if (typeof apiProj.galleryImages === 'string') {
+    try {
+      parsedGallery = JSON.parse(apiProj.galleryImages);
+    } catch (e) {
+      parsedGallery = null;
+    }
+  } else if (Array.isArray(apiProj.galleryImages)) {
+    parsedGallery = apiProj.galleryImages;
+  }
+
+  const finalGallery = (Array.isArray(parsedGallery) && parsedGallery.length > 1)
+    ? parsedGallery.map(getValidImageUrl)
+    : fallbackGallery;
+
   return {
     id: apiProj.id,
     title: apiProj.judul || apiProj.title || '',
     description: apiProj.deskripsi || apiProj.description || '',
-    imageUrl: apiProj.image_url || apiProj.imageUrl || '',
-    isFeatured: apiProj.is_recommended !== undefined ? apiProj.is_recommended : (apiProj.isFeatured !== undefined ? apiProj.isFeatured : false),
-    categories: apiProj.categories || [],
-    materials: apiProj.materials || '',
-    location: apiProj.location || '',
+    imageUrl: primaryImg,
+    isFeatured: apiProj.is_recommended !== undefined ? apiProj.is_recommended : (apiProj.isFeatured !== undefined ? apiProj.isFeatured : true),
+    categories: apiProj.categories && apiProj.categories.length > 0 ? apiProj.categories : fallbackCategories,
+    materials: apiProj.materials || 'Bahan kayu lapis premium, finishing melamine halus.',
+    location: apiProj.location || 'Bogor, Jawa Barat',
     year: apiProj.year || 2024,
-    clientName: apiProj.clientName || '',
-    galleryImages: apiProj.galleryImages || []
+    clientName: apiProj.clientName || 'Mitra Daya Kreasi Client',
+    galleryImages: finalGallery
   };
 };
 
@@ -94,35 +200,45 @@ export const projectService = {
       const response = await axiosClient.get('/api/projects');
       const rawList = Array.isArray(response.data) ? response.data : (response.data?.data || []);
       
-      if (rawList.length === 0) {
-        console.log("Seeding default projects to DB...");
-        const seededList: Project[] = [];
-        for (const p of defaultProjects) {
-          const apiPayload = mapProjectToApi(p);
-          const res = await axiosClient.post('/api/projects', apiPayload);
-          const resData = res.data?.data || res.data;
-          seededList.push(mapProjectFromApi(resData));
+      const mappedList = rawList.map(mapProjectFromApi);
+
+      if (mappedList.length < 5) {
+        console.log("Database contains less than 5 projects, seeding additional defaults...");
+        // Add the missing projects from defaultProjects list
+        const seededList = [...mappedList];
+        const startIndex = mappedList.length;
+        
+        for (let i = startIndex; i < 5; i++) {
+          const defaultProj = defaultProjects[i % defaultProjects.length];
+          try {
+            const apiPayload = mapProjectToApi(defaultProj);
+            const res = await axiosClient.post('/api/projects', apiPayload);
+            const resData = res.data?.data || res.data;
+            seededList.push(mapProjectFromApi(resData));
+          } catch (postErr) {
+            console.error("Failed to post seeded project", postErr);
+            // Fallback locally
+            seededList.push({
+              ...defaultProj,
+              id: Date.now() + i,
+              imageUrl: getValidImageUrl(defaultProj.imageUrl),
+              galleryImages: defaultProj.galleryImages ? defaultProj.galleryImages.map(getValidImageUrl) : [getValidImageUrl(defaultProj.imageUrl)]
+            } as Project);
+          }
         }
-        return { data: seededList, message: 'Seeded successfully', status: 200 };
+        return { data: seededList, message: 'Seeded up to 5 successfully', status: 200 };
       }
       
-      const mappedList = rawList.map(mapProjectFromApi);
       return { data: mappedList, message: 'Success', status: 200 };
     } catch (e) {
-      console.warn("API empty, seeding default projects...", e);
-      try {
-        const seededList: Project[] = [];
-        for (const p of defaultProjects) {
-          const apiPayload = mapProjectToApi(p);
-          const res = await axiosClient.post('/api/projects', apiPayload);
-          const resData = res.data?.data || res.data;
-          seededList.push(mapProjectFromApi(resData));
-        }
-        return { data: seededList, message: 'Seeded fallback', status: 200 };
-      } catch (err) {
-        const fallbackList = defaultProjects.map((p, idx) => ({ ...p, id: idx + 1 }));
-        return { data: fallbackList, message: 'Fallback list', status: 200 };
-      }
+      console.warn("API error, using full local fallback defaults...", e);
+      const fallbackList = defaultProjects.map((p, idx) => ({
+        ...p,
+        id: idx + 1,
+        imageUrl: getValidImageUrl(p.imageUrl),
+        galleryImages: p.galleryImages ? p.galleryImages.map(getValidImageUrl) : [getValidImageUrl(p.imageUrl)]
+      })) as Project[];
+      return { data: fallbackList, message: 'Fallback list', status: 200 };
     }
   },
 

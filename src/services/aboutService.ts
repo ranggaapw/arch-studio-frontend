@@ -18,6 +18,15 @@ export const aboutService = {
         const seedRes = await axiosClient.put<ApiResponse<AboutInfo>>('/api/about', defaultAboutInfo);
         return seedRes.data;
       }
+      // Auto-migrate legacy brand names
+      const d = response.data.data;
+      if (d.description?.includes('Arch Studio') || d.mission?.includes('Arch Studio') || d.vision?.includes('Arch Studio')) {
+        d.description = d.description?.replace(/Arch Studio/g, 'Mitra Daya Kreasi');
+        d.mission = d.mission?.replace(/Arch Studio/g, 'Mitra Daya Kreasi');
+        d.vision = d.vision?.replace(/Arch Studio/g, 'Mitra Daya Kreasi');
+        // Save back to DB
+        await axiosClient.put('/api/about', d);
+      }
       return response.data;
     } catch (e) {
       console.warn("API empty, seeding default about details...", e);
