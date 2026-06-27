@@ -3,6 +3,13 @@ import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import type { Project } from '../../../types';
 import { projectService } from '../../../services/projectService';
 
+const AVAILABLE_CATEGORIES = [
+  'rumah tropis modern',
+  'minimalis modern',
+  'klasik',
+  'industrial'
+];
+
 export default function PortfolioManager() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,6 +141,66 @@ export default function PortfolioManager() {
                   </div>
                 )}
               </div>
+
+              {/* DETAILS FIELDS FOR MODAL */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Nama Klien</label>
+                  <input
+                    type="text"
+                    value={editingProject.clientName || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, clientName: e.target.value })}
+                    className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="Bapak A / Company B"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Lokasi Proyek</label>
+                  <input
+                    type="text"
+                    value={editingProject.location || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, location: e.target.value })}
+                    className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="Jakarta / Bali"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Tahun Proyek</label>
+                  <input
+                    type="number"
+                    value={editingProject.year || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, year: parseInt(e.target.value) || undefined })}
+                    className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="2024"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Bahan &amp; Material (Pisahkan dengan koma)</label>
+                <input
+                  type="text"
+                  value={editingProject.materials || ''}
+                  onChange={(e) => setEditingProject({ ...editingProject, materials: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                  placeholder="Kayu Jati, Kaca Tempered, Beton Ekspos"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Gambar Galeri / Slideshow (Satu URL gambar per baris)</label>
+                <textarea
+                  rows={3}
+                  value={editingProject.galleryImages ? editingProject.galleryImages.join('\n') : ''}
+                  onChange={(e) => {
+                    const urls = e.target.value.split('\n').filter(line => line.trim() !== '');
+                    setEditingProject({ ...editingProject, galleryImages: urls });
+                  }}
+                  className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none resize-y"
+                  placeholder="https://unsplash.com/...\nhttps://unsplash.com/..."
+                />
+                <p className="text-xs text-neutral-400 mt-1">Pastikan baris pertama adalah URL gambar utama yang Anda upload di atas agar masuk galeri.</p>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
                 <textarea
@@ -143,6 +210,33 @@ export default function PortfolioManager() {
                   onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
                   className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none resize-y"
                 />
+              </div>
+              
+              {/* KATEGORI DESAIN CHECKBOX */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Kategori Desain (Bisa pilih lebih dari satu)</label>
+                <div className="flex flex-wrap gap-4 bg-neutral-50 p-4 rounded-xl border border-neutral-200">
+                  {AVAILABLE_CATEGORIES.map((cat) => {
+                    const isChecked = editingProject.categories?.includes(cat) || false;
+                    return (
+                      <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-neutral-700">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentCats = editingProject.categories || [];
+                            const nextCats = e.target.checked
+                              ? [...currentCats, cat]
+                              : currentCats.filter(c => c !== cat);
+                            setEditingProject({ ...editingProject, categories: nextCats });
+                          }}
+                          className="w-4 h-4 text-primary-600 rounded border-neutral-300 focus:ring-primary-500 cursor-pointer"
+                        />
+                        <span className="capitalize">{cat}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-4 pt-6 mt-4 border-t border-neutral-100">
@@ -185,6 +279,17 @@ export default function PortfolioManager() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-medium text-neutral-900">{project.title}</p>
+                      
+                      {project.categories && project.categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1 mb-1">
+                          {project.categories.map(cat => (
+                            <span key={cat} className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded capitalize">
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      
                       <p className="text-sm text-neutral-500 line-clamp-1">{project.description}</p>
                     </td>
                     <td className="px-6 py-4 text-right">

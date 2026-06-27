@@ -4,6 +4,13 @@ import type { HeroBanner, Project } from '../../../types';
 import { homeService } from '../../../services/homeService';
 import { projectService } from '../../../services/projectService';
 
+const AVAILABLE_CATEGORIES = [
+  'rumah tropis modern',
+  'minimalis modern',
+  'klasik',
+  'industrial'
+];
+
 export default function HeroBannerManager() {
   const [banner, setBanner] = useState<HeroBanner | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -244,6 +251,100 @@ export default function HeroBannerManager() {
                   </div>
                 )}
               </div>
+
+              {/* DETAILS FIELDS FOR MODAL */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Nama Klien</label>
+                  <input
+                    type="text"
+                    form="hero-banner-form"
+                    value={editingProject.clientName || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, clientName: e.target.value })}
+                    className="w-full px-4 py-3 bg-white rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="Bapak A / Company B"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Lokasi Proyek</label>
+                  <input
+                    type="text"
+                    form="hero-banner-form"
+                    value={editingProject.location || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, location: e.target.value })}
+                    className="w-full px-4 py-3 bg-white rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="Jakarta / Bali"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-1">Tahun Proyek</label>
+                  <input
+                    type="number"
+                    form="hero-banner-form"
+                    value={editingProject.year || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, year: parseInt(e.target.value) || undefined })}
+                    className="w-full px-4 py-3 bg-white rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                    placeholder="2024"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Bahan &amp; Material (Pisahkan dengan koma)</label>
+                <input
+                  type="text"
+                  form="hero-banner-form"
+                  value={editingProject.materials || ''}
+                  onChange={(e) => setEditingProject({ ...editingProject, materials: e.target.value })}
+                  className="w-full px-4 py-3 bg-white rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
+                  placeholder="Kayu Jati, Kaca Tempered, Beton Ekspos"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Gambar Galeri / Slideshow (Satu URL gambar per baris)</label>
+                <textarea
+                  form="hero-banner-form"
+                  rows={3}
+                  value={editingProject.galleryImages ? editingProject.galleryImages.join('\n') : ''}
+                  onChange={(e) => {
+                    const urls = e.target.value.split('\n').filter(line => line.trim() !== '');
+                    setEditingProject({ ...editingProject, galleryImages: urls });
+                  }}
+                  className="w-full px-4 py-3 bg-white rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none resize-y"
+                  placeholder="https://unsplash.com/...\nhttps://unsplash.com/..."
+                />
+                <p className="text-xs text-neutral-400 mt-1">Pastikan baris pertama adalah URL gambar utama yang Anda upload di atas agar masuk galeri.</p>
+              </div>
+              
+              {/* KATEGORI DESAIN CHECKBOX */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">Kategori Desain (Bisa pilih lebih dari satu)</label>
+                <div className="flex flex-wrap gap-4 bg-white p-4 rounded-xl border border-neutral-200">
+                  {AVAILABLE_CATEGORIES.map((cat) => {
+                    const isChecked = editingProject.categories?.includes(cat) || false;
+                    return (
+                      <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-neutral-700">
+                        <input
+                          type="checkbox"
+                          form="hero-banner-form"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentCats = editingProject.categories || [];
+                            const nextCats = e.target.checked
+                              ? [...currentCats, cat]
+                              : currentCats.filter(c => c !== cat);
+                            setEditingProject({ ...editingProject, categories: nextCats });
+                          }}
+                          className="w-4 h-4 text-primary-600 rounded border-neutral-300 focus:ring-primary-500 cursor-pointer"
+                        />
+                        <span className="capitalize">{cat}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -287,6 +388,17 @@ export default function HeroBannerManager() {
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <h4 className="font-semibold text-neutral-900 line-clamp-1 mb-1">{project.title}</h4>
+                  
+                  {project.categories && project.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {project.categories.map(cat => (
+                        <span key={cat} className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded capitalize">
+                          {cat}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
                   <p className="text-sm text-neutral-500 line-clamp-2">{project.description}</p>
                 </div>
               </div>

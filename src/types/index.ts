@@ -23,6 +23,9 @@ export interface Project {
   location?: string;
   year?: number;
   isFeatured?: boolean;
+  categories?: string[];
+  materials?: string;
+  galleryImages?: string[];
 }
 
 export interface AboutInfo {

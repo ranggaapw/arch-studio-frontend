@@ -122,7 +122,9 @@ export default function PortfolioPage() {
               <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-arch-sm hover:shadow-arch-lg transition-shadow duration-300">
                 <img src={item.imageUrl} alt={item.title} className="w-full h-64 object-cover" />
                 <div className="p-6">
-                  <span className="text-primary-600 text-body-sm-bold uppercase tracking-wider">Project</span>
+                  <span className="text-primary-600 text-body-sm-bold uppercase tracking-wider">
+                    {item.categories && item.categories.length > 0 ? item.categories.join(' / ') : 'Project'}
+                  </span>
                   <h3 className="text-h5-bold text-neutral-900 mt-2 mb-4">{item.title}</h3>
                   
                   <button 
@@ -173,7 +175,9 @@ export default function PortfolioPage() {
                 </div>
                 <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
                   <span className="inline-block px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-body-sm-bold uppercase tracking-wider w-max mb-4">
-                    Project
+                    {selectedItem.categories && selectedItem.categories.length > 0
+                      ? selectedItem.categories.join(' / ')
+                      : 'Project'}
                   </span>
                   <h2 className="text-h3-bold text-neutral-900 mb-6">{selectedItem.title}</h2>
                   <p className="text-body-lg-regular text-neutral-600 leading-relaxed mb-8">
