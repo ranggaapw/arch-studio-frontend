@@ -28,7 +28,7 @@ export default function CareerManager() {
       ]);
       setJobs(jobsRes?.data || []);
       
-      let rawContent = contentRes?.data || {};
+      let rawContent: any = contentRes?.data || {};
       if (Array.isArray(rawContent)) {
         rawContent = rawContent[0] || {};
       }
