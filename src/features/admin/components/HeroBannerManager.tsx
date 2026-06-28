@@ -3,6 +3,7 @@ import { Save, Plus, X } from 'lucide-react';
 import type { HeroBanner, Project } from '../../../types';
 import { homeService } from '../../../services/homeService';
 import { projectService } from '../../../services/projectService';
+import ServiceManager from './ServiceManager';
 
 const AVAILABLE_CATEGORIES = [
   'rumah tropis modern',
@@ -225,8 +226,13 @@ export default function HeroBannerManager() {
         </div>
       </form>
 
-      {/* SECTION DESAIN TERBAIK */}
+      {/* --- KELOLA LAYANAN KAMI --- */}
       <div className="mt-12 pt-12 border-t border-neutral-200">
+        <ServiceManager />
+      </div>
+
+      {/* SECTION DESAIN TERBAIK */}
+      <div className="mt-16 pt-16 border-t border-neutral-200">
         <div className="mb-6 flex justify-between items-start">
           <div>
             <h3 className="text-xl font-bold text-neutral-900">Kelola Desain Terbaik</h3>

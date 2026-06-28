@@ -55,18 +55,7 @@ export default function ServiceManager() {
     fetchServices();
   }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (editingService) {
-          setEditingService({ ...editingService, imageUrl: reader.result as string });
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,29 +182,7 @@ export default function ServiceManager() {
                   )}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Image (URL atau Upload File)</label>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <input
-                    type="text"
-                    value={editingService.imageUrl || ''}
-                    onChange={(e) => setEditingService({ ...editingService, imageUrl: e.target.value })}
-                    className="flex-1 px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none"
-                    placeholder="https://... atau upload ->"
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full md:max-w-xs px-2 py-2 bg-white rounded-xl border border-neutral-200 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-                  />
-                </div>
-                {editingService.imageUrl && (
-                  <div className="mt-4">
-                    <img src={editingService.imageUrl} alt="Preview" className="h-32 object-cover rounded-xl border border-neutral-200" />
-                  </div>
-                )}
-              </div>
+
             </div>
             <div className="flex justify-end gap-4 pt-6 mt-4 border-t border-neutral-100">
               <button

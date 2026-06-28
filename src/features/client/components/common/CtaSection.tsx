@@ -12,12 +12,22 @@ export default function CtaSection() {
               Tantangan diterima! Konsultasikan kebutuhan furniture custom dan interior Anda bersama Mitra Daya Kreasi, dan wujudkan ruang impian menjadi kenyataan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="flex items-center justify-center px-8 py-3.5 bg-primary-700 text-white rounded-xl text-body-md-bold hover:bg-primary-800 transition-colors cursor-pointer shadow-arch-md hover:-translate-y-0.5 duration-300">
+              <a 
+                href="https://wa.me/628986639200" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center px-8 py-3.5 bg-primary-700 text-white rounded-xl text-body-md-bold hover:bg-primary-800 transition-colors cursor-pointer shadow-arch-md hover:-translate-y-0.5 duration-300"
+              >
                 Hubungi Kami <ArrowRight size={18} className="ml-2" />
-              </button>
-              <button className="px-8 py-3.5 bg-white text-primary-700 border border-primary-700 rounded-xl text-body-md-bold hover:bg-primary-50 transition-colors cursor-pointer">
+              </a>
+              <a 
+                href="https://wa.me/628986639200" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-center justify-center px-8 py-3.5 bg-white text-primary-700 border border-primary-700 rounded-xl text-body-md-bold hover:bg-primary-50 transition-colors cursor-pointer"
+              >
                 Kontak Sales
-              </button>
+              </a>
             </div>
           </div>
           <div className="w-full md:w-1/2 relative h-[350px] hidden md:block">

@@ -49,8 +49,44 @@ export const serviceService = {
       
       const mappedList = rawList.map(mapServiceFromApi);
 
+      // Deduplicate locally and delete duplicate rows in the backend database
+      const uniqueServices: Service[] = [];
+      const titlesSeen = new Set<string>();
+
+      for (const service of mappedList) {
+        const normTitle = service.title.toLowerCase().trim();
+        if (titlesSeen.has(normTitle)) {
+          // Send delete request to backend to clean up the duplicated record
+          try {
+            await axiosClient.delete(`/api/services/${service.id}`);
+            console.log(`Auto-cleaned duplicate service from database: ${service.title} (ID: ${service.id})`);
+          } catch (delErr) {
+            console.error(`Failed to auto-clean duplicate service: ${service.id}`, delErr);
+          }
+        } else {
+          titlesSeen.add(normTitle);
+          uniqueServices.push(service);
+        }
+      }
+
+      // If database contains no unique services, seed defaults
+      if (uniqueServices.length === 0) {
+        const seededList: Service[] = [];
+        for (const s of defaultServices) {
+          try {
+            const apiPayload = mapServiceToApi(s);
+            const res = await axiosClient.post('/api/services', apiPayload);
+            const resData = res.data?.data || res.data;
+            seededList.push(mapServiceFromApi(resData));
+          } catch (postErr) {
+            console.error("Failed to seed service to DB", postErr);
+          }
+        }
+        return { data: seededList, message: 'Seeded successfully', status: 200 };
+      }
+
       // Verify and seed only missing default services
-      const seededList = [...mappedList];
+      const seededList = [...uniqueServices];
       let needsSeed = false;
       
       for (const s of defaultServices) {
@@ -71,7 +107,7 @@ export const serviceService = {
       if (needsSeed) {
         return { data: seededList, message: 'Seeded successfully', status: 200 };
       }
-      return { data: mappedList, message: 'Success', status: 200 };
+      return { data: uniqueServices, message: 'Success', status: 200 };
     } catch (e) {
       console.warn("API empty, seeding default services...", e);
       try {

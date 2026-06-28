@@ -31,7 +31,14 @@ export default function Footer() {
               </div>
               <div>
                 <h4 className="text-body-sm-bold text-neutral-900 mb-2 font-semibold">Kontak</h4>
-                <p className="text-body-sm-regular text-neutral-500">0812-9732-7397</p>
+                <a 
+                  href="https://wa.me/628986639200" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-body-sm-regular text-neutral-500 hover:text-primary-600 transition-colors"
+                >
+                  0898-6639-200
+                </a>
               </div>
             </div>
           </div>
