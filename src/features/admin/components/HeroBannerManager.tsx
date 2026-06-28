@@ -15,6 +15,7 @@ export default function HeroBannerManager() {
   const [banner, setBanner] = useState<HeroBanner | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Partial<Project> | null>(null);
+  const [selectedProjectDetail, setSelectedProjectDetail] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -70,11 +71,17 @@ export default function HeroBannerManager() {
       const res = await homeService.updateHeroBanner(banner);
       setBanner(res.data);
 
-      // Save New Project if form is open and has title
+      // Save New or Updated Project if form is open and has title
       if (editingProject && editingProject.title) {
-        const projRes = await projectService.createProject(editingProject as Omit<Project, 'id'>);
-        // Ensure the new project is appended
-        setProjects(prev => [...prev, projRes.data]);
+        if ('id' in editingProject && editingProject.id) {
+          // Update
+          const projRes = await projectService.updateProject(editingProject.id, editingProject as Project);
+          setProjects(prev => prev.map(p => p.id === editingProject.id ? projRes.data : p));
+        } else {
+          // Create
+          const projRes = await projectService.createProject(editingProject as Omit<Project, 'id'>);
+          setProjects(prev => [...prev, projRes.data]);
+        }
         setEditingProject(null); // Close the form after successful save
       }
 
@@ -85,6 +92,17 @@ export default function HeroBannerManager() {
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const handleDeleteProject = async (id: number) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus desain ini?')) return;
+    try {
+      await projectService.deleteProject(id);
+      setProjects(prev => prev.filter(p => p.id !== id));
+    } catch (error) {
+      console.error('Failed to delete project', error);
+      alert('Gagal menghapus desain.');
     }
   };
 
@@ -480,20 +498,49 @@ export default function HeroBannerManager() {
                     </label>
                   </div>
                 </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <h4 className="font-semibold text-neutral-900 line-clamp-1 mb-1">{project.title}</h4>
-                  
-                  {project.categories && project.categories.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {project.categories.map(cat => (
-                        <span key={cat} className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded capitalize">
-                          {cat}
-                        </span>
-                      ))}
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 line-clamp-1 mb-1">{project.title}</h4>
+                    
+                    {project.categories && project.categories.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {project.categories.map(cat => (
+                          <span key={cat} className="text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded capitalize">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-neutral-500 line-clamp-2">{project.description}</p>
+                  </div>
+
+                  {/* Actions bar */}
+                  <div className="flex justify-between items-center border-t border-neutral-100 pt-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProjectDetail(project)}
+                      className="text-xs font-semibold text-primary-600 hover:text-primary-800 transition-colors cursor-pointer"
+                    >
+                      Detail
+                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingProject(project)}
+                        className="text-xs font-semibold text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProject(project.id)}
+                        className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+                      >
+                        Hapus
+                      </button>
                     </div>
-                  )}
-                  
-                  <p className="text-sm text-neutral-500 line-clamp-2">{project.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -511,6 +558,106 @@ export default function HeroBannerManager() {
           <Save size={20} /> {saving ? 'Menyimpan Perubahan...' : 'Simpan Semua Perubahan'}
         </button>
       </div>
+
+      {/* --- DETAIL MODAL --- */}
+      {selectedProjectDetail && (
+        <div className="fixed inset-0 bg-neutral-950/70 flex items-center justify-center p-6 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative border border-neutral-100 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedProjectDetail(null)}
+              className="absolute top-6 right-6 p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 rounded-lg transition-colors cursor-pointer"
+              title="Tutup"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="space-y-6">
+              <div>
+                <span className="text-xs font-bold text-primary-600 uppercase tracking-wider block mb-1">Detail Desain</span>
+                <h3 className="text-2xl font-bold text-neutral-900">{selectedProjectDetail.title}</h3>
+              </div>
+
+              {selectedProjectDetail.imageUrl && (
+                <div className="w-full h-64 rounded-2xl overflow-hidden border border-neutral-200 shadow-sm bg-neutral-50">
+                  <img src={selectedProjectDetail.imageUrl} alt={selectedProjectDetail.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-200/50">
+                <div>
+                  <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Klien</span>
+                  <span className="text-sm font-semibold text-neutral-700">{selectedProjectDetail.clientName || '-'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Lokasi</span>
+                  <span className="text-sm font-semibold text-neutral-700">{selectedProjectDetail.location || '-'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Tahun</span>
+                  <span className="text-sm font-semibold text-neutral-700">{selectedProjectDetail.year || '-'}</span>
+                </div>
+                <div>
+                  <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Kategori</span>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {selectedProjectDetail.categories?.map(cat => (
+                      <span key={cat} className="text-[10px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded border border-primary-200/30 capitalize font-medium">
+                        {cat}
+                      </span>
+                    )) || '-'}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Bahan &amp; Material</span>
+                <p className="text-sm text-neutral-700 leading-relaxed bg-neutral-50 p-3.5 rounded-xl border border-neutral-200/40">
+                  {selectedProjectDetail.materials || '-'}
+                </p>
+              </div>
+
+              <div>
+                <span className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1.5">Deskripsi Lengkap</span>
+                <p className="text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">
+                  {selectedProjectDetail.description || 'Tidak ada deskripsi.'}
+                </p>
+              </div>
+
+              {selectedProjectDetail.galleryImages && selectedProjectDetail.galleryImages.length > 0 && (
+                <div>
+                  <span className="block text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3">Galeri Proyek ({selectedProjectDetail.galleryImages.length} Foto)</span>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {selectedProjectDetail.galleryImages.map((imgUrl, idx) => (
+                      <div key={idx} className="aspect-[4/3] rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100">
+                        <img src={imgUrl} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-neutral-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProject(selectedProjectDetail);
+                    setSelectedProjectDetail(null);
+                  }}
+                  className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                >
+                  Edit Proyek
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProjectDetail(null)}
+                  className="px-6 py-2.5 border border-neutral-200 hover:bg-neutral-50 rounded-xl text-xs font-bold text-neutral-600 transition-colors cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

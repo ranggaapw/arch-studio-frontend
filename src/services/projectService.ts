@@ -112,7 +112,7 @@ const mapProjectFromApi = (apiProj: any): Project => {
     fallbackCategories = ['minimalis modern'];
   }
 
-  const rawImg = apiProj.image_url || apiProj.imageUrl;
+  const rawImg = apiProj.imageUrl || apiProj.image_url;
   const primaryImg = getValidImageUrl(rawImg);
 
   let fallbackGallery = [primaryImg];
@@ -154,31 +154,34 @@ const mapProjectFromApi = (apiProj: any): Project => {
   }
 
   let parsedGallery: any = null;
-  if (typeof apiProj.galleryImages === 'string') {
+  const rawGallery = apiProj.galleryImages || apiProj.gallery_images;
+  if (typeof rawGallery === 'string') {
     try {
-      parsedGallery = JSON.parse(apiProj.galleryImages);
+      parsedGallery = JSON.parse(rawGallery);
     } catch (e) {
       parsedGallery = null;
     }
-  } else if (Array.isArray(apiProj.galleryImages)) {
-    parsedGallery = apiProj.galleryImages;
+  } else if (Array.isArray(rawGallery)) {
+    parsedGallery = rawGallery;
   }
 
-  const finalGallery = (Array.isArray(parsedGallery) && parsedGallery.length > 1)
+  const finalGallery = (Array.isArray(parsedGallery) && parsedGallery.length >= 1)
     ? parsedGallery.map(getValidImageUrl)
     : fallbackGallery;
+
+  const categories = apiProj.categories || apiProj.kategori;
 
   return {
     id: apiProj.id,
     title: apiProj.judul || apiProj.title || '',
     description: apiProj.deskripsi || apiProj.description || '',
     imageUrl: primaryImg,
-    isFeatured: apiProj.is_recommended !== undefined ? apiProj.is_recommended : (apiProj.isFeatured !== undefined ? apiProj.isFeatured : true),
-    categories: apiProj.categories && apiProj.categories.length > 0 ? apiProj.categories : fallbackCategories,
-    materials: apiProj.materials || 'Bahan kayu lapis premium, finishing melamine halus.',
-    location: apiProj.location || 'Bogor, Jawa Barat',
-    year: apiProj.year || 2024,
-    clientName: apiProj.clientName || 'Mitra Daya Kreasi Client',
+    isFeatured: apiProj.isRecommended !== undefined ? apiProj.isRecommended : (apiProj.is_recommended !== undefined ? apiProj.is_recommended : (apiProj.isFeatured !== undefined ? apiProj.isFeatured : true)),
+    categories: categories && categories.length > 0 ? categories : fallbackCategories,
+    materials: apiProj.materials || '',
+    location: apiProj.location || '',
+    year: apiProj.year || undefined,
+    clientName: apiProj.clientName || apiProj.client_name || '',
     galleryImages: finalGallery
   };
 };
@@ -187,15 +190,22 @@ const mapProjectToApi = (p: any) => {
   return {
     id: p.id,
     judul: p.title,
+    title: p.title,
     deskripsi: p.description,
+    description: p.description,
     image_url: p.imageUrl,
+    imageUrl: p.imageUrl,
     is_recommended: p.isFeatured,
+    isRecommended: p.isFeatured,
     categories: p.categories || [],
+    kategori: p.categories || [],
     materials: p.materials || '',
     location: p.location || '',
     year: p.year || 2024,
     clientName: p.clientName || '',
-    galleryImages: p.galleryImages || []
+    client_name: p.clientName || '',
+    galleryImages: p.galleryImages || [],
+    gallery_images: p.galleryImages || []
   };
 };
 
