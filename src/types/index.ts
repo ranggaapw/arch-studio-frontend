@@ -92,3 +92,16 @@ export interface CareerPageContent {
   potentials: PotentialItem[];
   cultures: CultureItem[];
 }
+
+export interface WorkProcess {
+  id: number;
+  title: string;
+  description: string;
+  iconName?: string;
+}
+
+export interface ProcessSettings {
+  id: number;
+  title: string;
+  subtitle: string;
+}

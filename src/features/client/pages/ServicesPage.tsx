@@ -2,10 +2,10 @@ import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import ContactSection from '../components/common/ContactSection';
 import { motion } from 'framer-motion';
-import { MessageSquare, PenTool, HardHat, Key } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { serviceService } from '../../../services/serviceService';
 import * as LucideIcons from 'lucide-react';
+import type { WorkProcess } from '../../../types';
 
 const IconRenderer = ({ name, className }: { name?: string, className?: string }) => {
   if (!name) return null;
@@ -14,29 +14,7 @@ const IconRenderer = ({ name, className }: { name?: string, className?: string }
   return <IconComponent className={className} />;
 };
 
-// Data Proses Kerja (tetap statis)
-const workProcesses = [
-  {
-    icon: <MessageSquare size={32} />,
-    title: '1. Konsultasi Awal',
-    desc: 'Diskusi mendalam mengenai visi, kebutuhan ruang, gaya yang diinginkan, dan alokasi anggaran Anda.'
-  },
-  {
-    icon: <PenTool size={32} />,
-    title: '2. Konsep & Desain',
-    desc: 'Pembuatan sketsa awal, denah, hingga visualisasi 3D fotorealistik untuk persetujuan Anda.'
-  },
-  {
-    icon: <HardHat size={32} />,
-    title: '3. Eksekusi & Konstruksi',
-    desc: 'Tim ahli kami mulai bekerja di lapangan dengan pengawasan ketat terhadap kualitas dan waktu.'
-  },
-  {
-    icon: <Key size={32} />,
-    title: '4. Serah Terima',
-    desc: 'Finalisasi detail, pembersihan menyeluruh, dan penyerahan kunci ruang impian Anda.'
-  }
-];
+
 
 export default function ServicesPage() {
   const { data: servicesResponse, isLoading, isError } = useQuery({
@@ -44,7 +22,13 @@ export default function ServicesPage() {
     queryFn: () => serviceService.getServices()
   });
 
+  const { data: processesResponse } = useQuery({
+    queryKey: ['workProcesses'],
+    queryFn: () => serviceService.getWorkProcesses()
+  });
+
   const services = servicesResponse?.data || [];
+  const processes = processesResponse?.data || [];
 
   return (
     <div className="min-h-screen bg-neutral-50 relative overflow-x-hidden">
@@ -162,7 +146,12 @@ export default function ServicesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {workProcesses.map((process, index) => (
+            {(processes.length > 0 ? processes : [
+              { title: '1. Konsultasi Awal', description: 'Diskusi mendalam mengenai visi, kebutuhan ruang, gaya yang diinginkan, dan alokasi anggaran Anda.', iconName: 'MessageSquare' },
+              { title: '2. Konsep & Desain', description: 'Pembuatan sketsa awal, denah, hingga visualisasi 3D fotorealistik untuk persetujuan Anda.', iconName: 'PenTool' },
+              { title: '3. Eksekusi & Konstruksi', description: 'Tim ahli kami mulai bekerja di lapangan dengan pengawasan ketat terhadap kualitas dan waktu.', iconName: 'HardHat' },
+              { title: '4. Serah Terima', description: 'Finalisasi detail, pembersihan menyeluruh, dan penyerahan kunci ruang impian Anda.', iconName: 'Key' }
+            ]).map((process, index) => (
               <motion.div 
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
@@ -172,11 +161,15 @@ export default function ServicesPage() {
                 className="flex flex-col items-start text-left p-10 bg-neutral-50 rounded-3xl border border-neutral-100 hover:shadow-arch-md hover:-translate-y-1 transition-all duration-300 group h-full min-h-[320px]"
               >
                 <div className="text-primary-600 mb-8 group-hover:scale-110 origin-left transition-transform duration-300">
-                  {process.icon}
+                  {process.iconName ? (
+                    <IconRenderer name={process.iconName} className="w-8 h-8 text-primary-600" />
+                  ) : (
+                    <LucideIcons.CheckCircle className="w-8 h-8 text-primary-600" />
+                  )}
                 </div>
                 <h3 className="text-xl font-bold text-neutral-900 mb-4">{process.title}</h3>
                 <p className="text-neutral-500 leading-relaxed text-sm">
-                  {process.desc}
+                  {process.description}
                 </p>
               </motion.div>
             ))}
