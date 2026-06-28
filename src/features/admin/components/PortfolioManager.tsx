@@ -46,6 +46,32 @@ export default function PortfolioManager() {
     }
   };
 
+  const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && editingProject) {
+      const currentImages = editingProject.galleryImages || [];
+      const newImages: string[] = [];
+      let loadedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') {
+            newImages.push(reader.result);
+          }
+          loadedCount++;
+          if (loadedCount === files.length) {
+            setEditingProject({
+              ...editingProject,
+              galleryImages: [...currentImages, ...newImages]
+            });
+          }
+        };
+        reader.readAsDataURL(files[i]);
+      }
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProject) return;
@@ -188,18 +214,78 @@ export default function PortfolioManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">Gambar Galeri / Slideshow (Satu URL gambar per baris)</label>
-                <textarea
-                  rows={3}
-                  value={editingProject.galleryImages ? editingProject.galleryImages.join('\n') : ''}
-                  onChange={(e) => {
-                    const urls = e.target.value.split('\n').filter(line => line.trim() !== '');
-                    setEditingProject({ ...editingProject, galleryImages: urls });
-                  }}
-                  className="w-full px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-200 focus:ring-2 focus:ring-primary-600 outline-none resize-y"
-                  placeholder="https://unsplash.com/...\nhttps://unsplash.com/..."
-                />
-                <p className="text-xs text-neutral-400 mt-1">Pastikan baris pertama adalah URL gambar utama yang Anda upload di atas agar masuk galeri.</p>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">Gambar Galeri / Slideshow</label>
+                
+                {/* Gallery Preview Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 mt-2">
+                  {editingProject.galleryImages?.map((url, idx) => (
+                    <div key={idx} className="relative group aspect-[4/3] rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100 shadow-sm">
+                      <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = (editingProject.galleryImages || []).filter((_, i) => i !== idx);
+                          setEditingProject({ ...editingProject, galleryImages: updated });
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors cursor-pointer shadow-md opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="Hapus gambar ini"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {/* Upload Card / Button */}
+                  <label className="relative aspect-[4/3] flex flex-col items-center justify-center border-2 border-dashed border-neutral-300 hover:border-primary-600 rounded-xl cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors shadow-sm">
+                    <Plus className="text-neutral-400" size={24} />
+                    <span className="text-xs font-semibold text-neutral-500 mt-1 text-center px-1">Upload Foto</span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleGalleryUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Add image URL input */}
+                <div className="flex gap-2 mt-4">
+                  <input
+                    type="text"
+                    placeholder="Atau masukkan URL gambar..."
+                    id="gallery-url-input"
+                    className="flex-1 px-4 py-2.5 bg-neutral-50 rounded-xl border border-neutral-200 text-sm focus:ring-2 focus:ring-primary-600 outline-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const target = e.currentTarget;
+                        const url = target.value.trim();
+                        if (url) {
+                          const current = editingProject.galleryImages || [];
+                          setEditingProject({ ...editingProject, galleryImages: [...current, url] });
+                          target.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('gallery-url-input') as HTMLInputElement;
+                      const url = input?.value?.trim();
+                      if (url) {
+                        const current = editingProject.galleryImages || [];
+                        setEditingProject({ ...editingProject, galleryImages: [...current, url] });
+                        input.value = '';
+                      }
+                    }}
+                    className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded-xl text-sm font-semibold text-neutral-700 transition-colors cursor-pointer"
+                  >
+                    Tambah URL
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-400 mt-2">Anda bisa mengupload beberapa file gambar sekaligus atau menempelkan URL gambar langsung.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">Description</label>
