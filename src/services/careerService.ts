@@ -100,49 +100,69 @@ const mapJobOpeningToApi = (j: any) => {
   };
 };
 
+
+
+const mapCareerContentFromApi = (c: any): CareerPageContent => {
+  if (!c) return defaultCareerContent;
+  
+  const potentials = Array.isArray(c.potentials)
+    ? c.potentials.map((p: any) => ({
+        title: p.title || '',
+        desc: p.desc || p.description || '',
+        imgUrl: p.imgUrl || p.imageUrl || ''
+      }))
+    : [];
+
+  const cultures = Array.isArray(c.cultures)
+    ? c.cultures.map((cul: any) => ({
+        title: cul.title || '',
+        desc: cul.desc || cul.description || ''
+      }))
+    : [];
+
+  return {
+    heroTitle: c.heroTitle || c.hero_title || '',
+    heroSubtitle: c.heroSubtitle || c.hero_subtitle || '',
+    heroBgUrl: c.heroBgUrl || c.hero_bg_url || '',
+    potentials,
+    cultures
+  };
+};
+
+const mapCareerContentToApi = (c: CareerPageContent) => {
+  const potentials = Array.isArray(c.potentials)
+    ? c.potentials.map((p: any) => ({
+        title: p.title,
+        desc: p.desc,
+        description: p.desc,
+        imgUrl: p.imgUrl,
+        imageUrl: p.imgUrl
+      }))
+    : [];
+
+  const cultures = Array.isArray(c.cultures)
+    ? c.cultures.map((cul: any) => ({
+        title: cul.title,
+        desc: cul.desc,
+        description: cul.desc
+      }))
+    : [];
+
+  return {
+    heroTitle: c.heroTitle,
+    heroSubtitle: c.heroSubtitle,
+    heroBgUrl: c.heroBgUrl,
+    potentials,
+    cultures
+  };
+};
+
 export const careerService = {
   getJobOpenings: async (): Promise<ApiResponse<JobOpening[]>> => {
-    try {
-      const response = await axiosClient.get('/api/jobs');
-      const resVal = response.data?.data !== undefined ? response.data.data : response.data;
-      
-      let rawList: any[] = [];
-      if (Array.isArray(resVal)) {
-        rawList = resVal;
-      } else if (resVal && typeof resVal === 'object') {
-        rawList = [resVal];
-      }
-      
-      if (rawList.length === 0) {
-        console.log("Seeding default job openings to DB...");
-        const seededList: JobOpening[] = [];
-        for (const j of defaultJobOpenings) {
-          const apiPayload = mapJobOpeningToApi(j);
-          const res = await axiosClient.post('/api/jobs', apiPayload);
-          const resData = res.data?.data || res.data;
-          seededList.push(mapJobOpeningFromApi(resData));
-        }
-        return { data: seededList, message: 'Seeded successfully', status: 200 };
-      }
-      
-      const mappedList = rawList.map(mapJobOpeningFromApi);
-      return { data: mappedList, message: 'Success', status: 200 };
-    } catch (e) {
-      console.warn("API empty, seeding default jobs...", e);
-      try {
-        const seededList: JobOpening[] = [];
-        for (const j of defaultJobOpenings) {
-          const apiPayload = mapJobOpeningToApi(j);
-          const res = await axiosClient.post('/api/jobs', apiPayload);
-          const resData = res.data?.data || res.data;
-          seededList.push(mapJobOpeningFromApi(resData));
-        }
-        return { data: seededList, message: 'Seeded fallback', status: 200 };
-      } catch (err) {
-        const fallbackList = defaultJobOpenings.map((j, idx) => ({ ...j, id: idx + 1 }));
-        return { data: fallbackList, message: 'Fallback list', status: 200 };
-      }
-    }
+    const response = await axiosClient.get('/api/jobs');
+    const resData = response.data?.data || response.data;
+    const finalData = Array.isArray(resData) ? resData.map(mapJobOpeningFromApi) : [];
+    return { data: finalData, message: 'Success', status: 200 };
   },
 
   createJobOpening: async (data: Omit<JobOpening, 'id'>): Promise<ApiResponse<JobOpening>> => {
@@ -168,19 +188,21 @@ export const careerService = {
     try {
       const response = await axiosClient.get('/api/career/settings');
       const resData = response.data?.data || response.data;
-      if (!resData || !resData.heroTitle) {
+      if (!resData || (!resData.heroTitle && !resData.hero_title)) {
         // Seed database
-        const seedRes = await axiosClient.put('/api/career/settings', defaultCareerContent);
+        const seedPayload = mapCareerContentToApi(defaultCareerContent);
+        const seedRes = await axiosClient.put('/api/career/settings', seedPayload);
         const seedData = seedRes.data?.data || seedRes.data;
-        return { data: seedData, message: 'Seeded settings', status: 200 };
+        return { data: mapCareerContentFromApi(seedData), message: 'Seeded settings', status: 200 };
       }
-      return { data: resData, message: 'Success', status: 200 };
+      return { data: mapCareerContentFromApi(resData), message: 'Success', status: 200 };
     } catch (e) {
       console.warn("API empty, seeding default career settings...", e);
       try {
-        const seedRes = await axiosClient.put('/api/career/settings', defaultCareerContent);
+        const seedPayload = mapCareerContentToApi(defaultCareerContent);
+        const seedRes = await axiosClient.put('/api/career/settings', seedPayload);
         const seedData = seedRes.data?.data || seedRes.data;
-        return { data: seedData, message: 'Seeded fallback', status: 200 };
+        return { data: mapCareerContentFromApi(seedData), message: 'Seeded fallback', status: 200 };
       } catch (err) {
         return { data: defaultCareerContent, message: 'Fallback', status: 200 };
       }
@@ -188,8 +210,9 @@ export const careerService = {
   },
 
   updateCareerContent: async (data: CareerPageContent): Promise<ApiResponse<CareerPageContent>> => {
-    const response = await axiosClient.put('/api/career/settings', data);
+    const apiPayload = mapCareerContentToApi(data);
+    const response = await axiosClient.put('/api/career/settings', apiPayload);
     const resData = response.data?.data || response.data;
-    return { data: resData, message: 'Updated successfully', status: 200 };
+    return { data: mapCareerContentFromApi(resData), message: 'Updated successfully', status: 200 };
   }
 };

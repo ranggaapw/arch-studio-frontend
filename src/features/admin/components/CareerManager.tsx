@@ -130,16 +130,56 @@ export default function CareerManager() {
     }
   };
 
+  // Helper to compress images before converting to base64
+  const compressImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } else {
+            resolve(event.target?.result as string);
+          }
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Base64 image handler helper
-  const handleImageChange = (
+  const handleImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>, 
     target: 'hero' | { type: 'potential'; index: number }
   ) => {
     const file = e.target.files?.[0];
     if (file && content) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
+      try {
+        const maxDim = target === 'hero' ? 1200 : 600;
+        const base64 = await compressImage(file, maxDim, maxDim, 0.75);
         if (target === 'hero') {
           setContent({ ...content, heroBgUrl: base64 });
         } else {
@@ -150,8 +190,9 @@ export default function CareerManager() {
           };
           setContent({ ...content, potentials: updatedPotentials });
         }
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("Failed to compress image", err);
+      }
     }
   };
 

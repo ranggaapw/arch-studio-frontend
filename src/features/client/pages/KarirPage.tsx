@@ -4,7 +4,7 @@ import Footer from '../components/common/Footer';
 import { MapPin, Clock, ArrowUpRight, Send, Check, Paperclip, Loader2 } from 'lucide-react';
 import { jobApplicationService } from '../../../services/jobApplicationService';
 import { careerService } from '../../../services/careerService';
-import type { JobOpening } from '../../../types';
+import type { JobOpening, CareerPageContent } from '../../../types';
 
 export default function KarirPage() {
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -23,19 +23,34 @@ export default function KarirPage() {
   const [jobs, setJobs] = useState<JobOpening[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
 
+  // Career settings content state
+  const [content, setContent] = useState<CareerPageContent | null>(null);
+  const [loadingContent, setLoadingContent] = useState(true);
+
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
         setLoadingJobs(true);
-        const res = await careerService.getJobOpenings();
-        setJobs(res.data);
+        setLoadingContent(true);
+        const [jobsRes, contentRes] = await Promise.all([
+          careerService.getJobOpenings(),
+          careerService.getCareerContent()
+        ]);
+        setJobs(jobsRes.data);
+        
+        let rawContent = contentRes?.data || {};
+        if (Array.isArray(rawContent)) {
+          rawContent = rawContent[0] || {};
+        }
+        setContent(rawContent as CareerPageContent);
       } catch (err) {
-        console.error('Failed to fetch jobs', err);
+        console.error('Failed to fetch career page data', err);
       } finally {
         setLoadingJobs(false);
+        setLoadingContent(false);
       }
     };
-    fetchJobs();
+    fetchData();
   }, []);
 
   const handleApplyClick = (jobTitle: string) => {
@@ -96,14 +111,14 @@ export default function KarirPage() {
       {/* --- HERO SECTION --- */}
       <section 
         className="relative w-full h-[calc(100vh-72px)] px-8 flex flex-col items-center justify-center text-center bg-cover bg-center"
-        style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75)), url('https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80')` }}
+        style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.75)), url('${content?.heroBgUrl || 'https://images.unsplash.com/photo-1513128034602-7814ccaddd4e?auto=format&fit=crop&w=1600&q=80'}')` }}
       >
         <div className="max-w-4xl mx-auto z-10 text-white">
           <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight mb-4">
-            Become Part of <span className="text-primary-500">#MDKteam</span>
+            {content?.heroTitle || 'Become Part of #MDKteam'}
           </h1>
           <p className="text-lg md:text-xl text-neutral-300 font-medium tracking-wide mb-2 uppercase">
-            Bergabung dan Menjadi Inovator
+            {content?.heroSubtitle || 'Bergabung dan Menjadi Inovator'}
           </p>
           <div className="w-16 h-1 bg-primary-500 mx-auto mt-6 rounded-full"></div>
         </div>
@@ -115,27 +130,27 @@ export default function KarirPage() {
           <h2 className="text-2xl md:text-3xl font-extrabold text-neutral-900 mb-16 tracking-tight">
             Empowering Your Potential
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 justify-center">
+            {(content?.potentials || [
               {
                 title: 'Growth Opportunities',
                 desc: 'Kesempatan belajar langsung dari pengrajin senior dan desainer interior profesional untuk meningkatkan keahlian Anda.',
-                img: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500'
+                imgUrl: 'https://images.unsplash.com/photo-1531535934027-689615776d68?w=500'
               },
               {
                 title: 'People First',
                 desc: 'Lingkungan kerja kekeluargaan yang suportif, aman, dan saling menghargai kontribusi setiap anggota tim.',
-                img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500'
+                imgUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500'
               },
               {
                 title: 'Inspiring Community',
                 desc: 'Berkolaborasi bersama tim desainer kreatif dan produsen guna melahirkan produk furniture berkualitas tinggi.',
-                img: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500'
+                imgUrl: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=500'
               }
-            ].map((val, idx) => (
+            ]).map((val, idx) => (
               <div key={idx} className="flex flex-col items-center group">
                 <div className="w-48 h-48 rounded-2xl overflow-hidden mb-6 shadow-md transition-transform duration-500 group-hover:scale-105">
-                  <img src={val.img} alt={val.title} className="w-full h-full object-cover" />
+                  <img src={val.imgUrl} alt={val.title} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-lg font-bold text-neutral-900 mb-3">{val.title}</h3>
                 <p className="text-neutral-500 text-sm leading-relaxed max-w-sm">
@@ -158,7 +173,7 @@ export default function KarirPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
+            {(content?.cultures || [
               {
                 title: 'Teamwork',
                 desc: 'Menyatukan keahlian desain dan presisi pengerjaan kayu guna menghadirkan kualitas produk furniture terbaik bagi klien.'
@@ -171,7 +186,7 @@ export default function KarirPage() {
                 title: 'Innovation',
                 desc: 'Terus bereksperimen dengan metode perakitan modern, efisiensi bahan baku, serta detail konstruksi tahan lama.'
               }
-            ].map((culture, idx) => (
+            ]).map((culture, idx) => (
               <div key={idx} className="bg-white p-8 rounded-3xl border border-neutral-200/50 shadow-sm text-left group hover:-translate-y-1.5 transition-all duration-300">
                 <div className="text-4xl font-extrabold text-primary-600/20 mb-4 group-hover:text-primary-600/100 transition-colors duration-300">
                   {culture.title.substring(0, 2)}
