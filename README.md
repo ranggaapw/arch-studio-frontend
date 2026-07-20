@@ -1,6 +1,6 @@
 # 🏗️ Arch Studio — Platform Company Profile Mitra Daya Kreasi
 
-> Platform web company profile & manajemen konten untuk **Workshop Furniture Mitra Daya Kreasi**, mencakup portofolio desain, manajemen layanan, halaman karir, dan formulir kontak — dilengkapi dengan dashboard admin yang fully dynamic.
+> Platform web company profile & manajemen konten untuk **Workshop Furniture Mitra Daya Kreasi**, mencakup portofolio desain, manajemen layanan, halaman karir, formulir kontak, dan rekomendasi desain terbaik berbasis AHP — dilengkapi dengan dashboard admin yang fully dynamic.
 
 ---
 
@@ -24,37 +24,42 @@
 Arch Studio adalah platform **Company Profile berbasis web** yang dibangun untuk **Workshop Furniture Mitra Daya Kreasi**, sebuah produsen furniture custom dan interior yang berlokasi di Bogor, Jawa Barat.
 
 Sistem ini terdiri dari dua bagian utama:
+
 - **Halaman Klien (Public)**: Menampilkan informasi perusahaan, portofolio proyek, layanan, karir, dan formulir kontak secara dinamis.
 - **Dashboard Admin (Private)**: Memungkinkan pengelola untuk melakukan operasi CRUD (Create, Read, Update, Delete) pada semua konten yang tampil di halaman publik tanpa perlu menyentuh kode.
+
+Frontend pada repository ini terhubung ke backend melalui REST API. Backend kemudian menyimpan dan mengambil data dari database, sehingga konten di halaman publik maupun admin dapat berubah secara dinamis tanpa rebuild frontend.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-| Teknologi | Versi | Keterangan |
-|---|---|---|
-| **React** | 19.x | Library utama UI |
-| **TypeScript** | ~6.0 | Type safety |
-| **Vite** | 8.x | Build tool & dev server |
-| **Tailwind CSS** | 4.x | Utility-first CSS framework |
-| **React Router DOM** | 7.x | Client-side routing |
-| **TanStack Query** | 5.x | Server state management & caching |
-| **Axios** | 1.x | HTTP client untuk API calls |
-| **Zustand** | 5.x | Global state management (auth) |
-| **Framer Motion** | 12.x | Animasi UI |
-| **Lucide React** | 1.x | Ikon SVG |
-| **Embla Carousel** | 8.x | Komponen carousel/slider |
+
+| Teknologi            | Versi | Keterangan                        |
+| -------------------- | ----- | --------------------------------- |
+| **React**            | 19.x  | Library utama UI                  |
+| **TypeScript**       | ~6.0  | Type safety                       |
+| **Vite**             | 8.x   | Build tool & dev server           |
+| **Tailwind CSS**     | 4.x   | Utility-first CSS framework       |
+| **React Router DOM** | 7.x   | Client-side routing               |
+| **TanStack Query**   | 5.x   | Server state management & caching |
+| **Axios**            | 1.x   | HTTP client untuk API calls       |
+| **Zustand**          | 5.x   | Global state management (auth)    |
+| **Framer Motion**    | 12.x  | Animasi UI                        |
+| **Lucide React**     | 1.x   | Ikon SVG                          |
+| **Embla Carousel**   | 8.x   | Komponen carousel/slider          |
 
 ### Backend
-| Teknologi | Versi | Keterangan |
-|---|---|---|
-| **Java** | 21+ | Bahasa pemrograman utama |
-| **Spring Boot** | 3.x | Framework backend |
-| **Gradle** | - | Build & dependency tool |
-| **Spring Data JPA** | - | ORM layer |
-| **PostgreSQL / H2** | - | Database relasional |
-| **Spring Security** | - | Autentikasi & otorisasi |
+
+| Teknologi           | Versi | Keterangan               |
+| ------------------- | ----- | ------------------------ |
+| **Java**            | 21+   | Bahasa pemrograman utama |
+| **Spring Boot**     | 3.x   | Framework backend        |
+| **Gradle**          | -     | Build & dependency tool  |
+| **Spring Data JPA** | -     | ORM layer                |
+| **PostgreSQL / H2** | -     | Database relasional      |
+| **Spring Security** | -     | Autentikasi & otorisasi  |
 
 ---
 
@@ -80,13 +85,14 @@ Sistem ini terdiri dari dua bagian utama:
 │                                                        │
 │   REST Controllers → Service Layer → Repository (JPA)  │
 │                                                        │
-│   Endpoints:                                           │
+│   Endpoints utama:                                     │
 │   POST   /api/auth/login                               │
 │   GET    /api/home | /api/services | /api/projects     │
 │   GET    /api/about | /api/career | /api/messages      │
-│   POST   /api/services/processes | /api/portfolio      │
+│   POST   /api/services/processes | /api/projects       │
 │   PUT    /api/services/{id} | /api/about               │
 │   DELETE /api/services/{id} | /api/projects/{id}       │
+│   POST   /api/ahp/calculate                            │
 └───────────────────────────┬────────────────────────────┘
                             │   JPA / Hibernate ORM
                             ▼
@@ -95,11 +101,13 @@ Sistem ini terdiri dari dua bagian utama:
 │                                                        │
 │   Tables: hero_banners, projects, services,            │
 │           work_processes, about_info, messages,        │
-│           career_settings, job_applications            │
+│           career_settings, job_applications,           │
+│           AHP-related project data                     │
 └────────────────────────────────────────────────────────┘
 ```
 
 **Alur Data:**
+
 1. Pengguna membuka halaman web → React merender UI
 2. React (via TanStack Query & Axios) mengirim HTTP request ke Spring Boot REST API
 3. Spring Boot memproses request melalui Controller → Service → Repository
@@ -170,31 +178,35 @@ src/
 ## ✨ Fitur Utama
 
 ### Halaman Publik (Klien)
-| Fitur | Keterangan |
-|---|---|
-| **Hero Banner Dinamis** | Judul, subjudul, dan background gambar bisa diganti dari admin |
-| **Portofolio Proyek** | Galeri proyek lengkap dengan filter kategori, detail klien, lokasi, tahun, material, dan slideshow gambar |
-| **Halaman Layanan** | Menampilkan daftar layanan dan proses kerja yang 100% dikelola dari admin |
-| **Halaman Karir** | Daftar lowongan kerja dan form lamaran online dengan upload CV |
-| **Form Kontak** | Pesan dari pengunjung tersimpan ke database dan bisa dibaca dari admin |
-| **CTA WhatsApp** | Semua tombol "Hubungi Kami" langsung redirect ke WhatsApp |
+
+| Fitur                   | Keterangan                                                                                                |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Hero Banner Dinamis** | Judul, subjudul, dan background gambar bisa diganti dari admin                                            |
+| **Portofolio Proyek**   | Galeri proyek lengkap dengan filter kategori, detail klien, lokasi, tahun, material, dan slideshow gambar |
+| **Halaman Layanan**     | Menampilkan daftar layanan dan proses kerja yang 100% dikelola dari admin                                 |
+| **Halaman Karir**       | Daftar lowongan kerja dan form lamaran online dengan upload CV                                            |
+| **Form Kontak**         | Pesan dari pengunjung tersimpan ke database dan bisa dibaca dari admin                                    |
+| **CTA WhatsApp**        | Semua tombol "Hubungi Kami" langsung redirect ke WhatsApp                                                 |
 
 ### Dashboard Admin (Private)
-| Fitur | Keterangan |
-|---|---|
-| **Autentikasi** | Login aman dengan JWT / session |
-| **Kelola Home Banner** | Edit teks, gambar background hero, dan pilih proyek untuk "Desain Terbaik" |
-| **Kelola Layanan & Metode Kerja** | CRUD lengkap dengan pemilihan ikon dari Lucide React |
-| **Kelola Portofolio** | Tambah/edit/hapus proyek beserta galeri foto |
-| **Kelola Karir** | Edit konten hero karir, potensi, budaya, dan buka/tutup lowongan |
-| **Pesan Masuk** | Baca dan tandai pesan dari pengunjung |
-| **Lamaran Kerja** | Kelola dan unduh file CV dari pelamar |
+
+| Fitur                             | Keterangan                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Autentikasi**                   | Login aman dengan JWT / session                                                                   |
+| **Kelola Home Banner**            | Edit teks dan gambar background hero                                                              |
+| **Kelola Layanan & Metode Kerja** | CRUD lengkap dengan pemilihan ikon dari Lucide React                                              |
+| **Kelola Portofolio**             | Tambah/edit/hapus proyek beserta galeri foto, kategori, material, lokasi, dan data detail lainnya |
+| **Kelola Karir**                  | Edit konten hero karir, potensi, budaya, dan buka/tutup lowongan                                  |
+| **Pesan Masuk**                   | Baca dan tandai pesan dari pengunjung                                                             |
+| **Lamaran Kerja**                 | Kelola dan unduh file CV dari pelamar                                                             |
+| **Rekomendasi AHP**               | Menentukan desain terbaik secara otomatis berdasarkan prioritas kriteria yang dipilih pengguna    |
 
 ---
 
 ## 🚀 Cara Instalasi & Menjalankan
 
 ### Prasyarat
+
 - **Node.js** v20+
 - **Java** 21+
 - **PostgreSQL** (atau gunakan H2 untuk development)
@@ -228,6 +240,7 @@ cd arch-studio-backend
 ```
 
 **Konfigurasi Database** (`application.properties`):
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/arch_studio_db
 spring.datasource.username=postgres
@@ -276,28 +289,30 @@ Buat file `.env` di direktori `arch-studio-frontend/`:
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
+Jika backend berjalan di host atau port lain, sesuaikan `VITE_API_BASE_URL` agar frontend tetap dapat membaca dan menyimpan data ke API yang benar.
+
 ---
 
 ## 🔧 Troubleshooting
 
-| Masalah | Solusi |
-|---|---|
-| **CORS Error** di browser | Pastikan Spring Boot sudah dikonfigurasi `@CrossOrigin` atau via `CorsConfiguration` global |
+| Masalah                                | Solusi                                                                                                                                 |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **CORS Error** di browser              | Pastikan Spring Boot sudah dikonfigurasi `@CrossOrigin` atau via `CorsConfiguration` global                                            |
 | **400 Bad Request** saat upload gambar | Gambar terlalu besar. Frontend sudah mengompresi gambar secara otomatis, pastikan batas `spring.servlet.multipart.max-file-size` cukup |
-| **Data tidak tampil** di halaman klien | Periksa apakah backend sudah berjalan di `localhost:8080` dan `VITE_API_BASE_URL` sudah benar |
-| **Duplikat data layanan** | Frontend mendeteksi dan menghapus duplikat otomatis saat halaman dimuat pertama kali |
-| **pnpm: command not found** | Install pnpm dulu: `npm install -g pnpm` |
-| **Gradle build gagal** | Pastikan Java 21 sudah terinstal dan `JAVA_HOME` sudah diset dengan benar |
+| **Data tidak tampil** di halaman klien | Periksa apakah backend sudah berjalan dan `VITE_API_BASE_URL` sudah benar. Frontend mengambil data langsung dari REST API backend      |
+| **Desain terbaik tidak berubah**       | Penentuan desain terbaik sekarang otomatis lewat AHP, bukan lewat toggle manual di admin                                               |
+| **pnpm: command not found**            | Install pnpm dulu: `npm install -g pnpm`                                                                                               |
+| **Gradle build gagal**                 | Pastikan Java 21 sudah terinstal dan `JAVA_HOME` sudah diset dengan benar                                                              |
 
 ---
 
 ## 👥 Kontributor
 
-| Nama | Role |
-|---|---|
-| [Nama Anda] | Full Stack Developer |
-| [Nama Anggota] | Backend Developer |
-| [Nama Anggota] | UI/UX Designer |
+| Nama           | Role                 |
+| -------------- | -------------------- |
+| [Nama Anda]    | Full Stack Developer |
+| [Nama Anggota] | Backend Developer    |
+| [Nama Anggota] | UI/UX Designer       |
 
 ---
 
@@ -309,4 +324,4 @@ Dilarang menyalin, mendistribusikan, atau memodifikasi kode ini tanpa izin tertu
 
 ---
 
-> Dibuat dengan ❤️ untuk Mitra Daya Kreasi — *Wujudkan Ruang Impian Menjadi Kenyataan.*
+> Dibuat dengan ❤️ untuk Mitra Daya Kreasi — _Wujudkan Ruang Impian Menjadi Kenyataan._

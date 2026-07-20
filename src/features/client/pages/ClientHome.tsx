@@ -1,20 +1,23 @@
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { homeService } from '../../../services/homeService';
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { homeService } from "../../../services/homeService";
 
-import Navbar from '../components/common/Navbar';
-import ServicesSection from '../components/common/ServicesSection';
-import ProjectCarousel from '../components/common/ProjectCarousel';
-import Footer from '../components/common/Footer';
-import TestimonialSection from '../components/common/TestimonialSection';
-import FeaturedProject from '../components/common/FeaturedProject';
-import ContactSection from '../components/common/ContactSection';
-import BestDesignSection from '../components/common/BestDesignSection';
+import Navbar from "../components/common/Navbar";
+import ServicesSection from "../components/common/ServicesSection";
+import ProjectCarousel from "../components/common/ProjectCarousel";
+import Footer from "../components/common/Footer";
+import TestimonialSection from "../components/common/TestimonialSection";
+import ContactSection from "../components/common/ContactSection";
+import BestDesignSection from "../components/common/BestDesignSection";
 
 export default function ClientHome() {
-  const { data: bannerResponse, isLoading, isError } = useQuery({
-    queryKey: ['heroBanner'],
-    queryFn: () => homeService.getHeroBanner()
+  const {
+    data: bannerResponse,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["heroBanner"],
+    queryFn: () => homeService.getHeroBanner(),
   });
 
   const banner = bannerResponse?.data;
@@ -22,16 +25,17 @@ export default function ClientHome() {
   return (
     <div className="min-h-screen bg-neutral-50 font-sans">
       <Navbar />
-      
-      <main 
+      <main
         className="relative w-full h-[calc(100vh-72px)] px-6 flex flex-col items-center justify-center text-center bg-cover bg-center overflow-hidden"
-        style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url(${banner?.backgroundImageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920'})` }}
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.65)), url(${banner?.backgroundImageUrl || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920"})`,
+        }}
       >
         {isLoading ? (
           <div className="py-20 flex flex-col items-center">
             <div className="h-6 w-48 bg-white/20 animate-pulse rounded mb-4"></div>
-            <div className="h-16 w-[600px] max-w-full bg-white/20 animate-pulse rounded mb-6"></div>
-            <div className="h-20 w-[500px] max-w-full bg-white/20 animate-pulse rounded mb-10"></div>
+            <div className="h-16 w-150 max-w-full bg-white/20 animate-pulse rounded mb-6"></div>
+            <div className="h-20 w-125 max-w-full bg-white/20 animate-pulse rounded mb-10"></div>
             <div className="h-14 w-48 bg-white/20 animate-pulse rounded-xl"></div>
           </div>
         ) : isError || !banner ? (
@@ -55,25 +59,16 @@ export default function ClientHome() {
           </>
         )}
       </main>
-
       {/* Services Section */}
       <ServicesSection />
-
-      {/* Featured Project */}
-      <FeaturedProject />
-
       {/* Best Design AHP Recommendation */}
       <BestDesignSection />
-
       {/* Project Carousel */}
       <ProjectCarousel />
-
       {/* Testimonial Section */}
       <TestimonialSection />
-
       {/* Contact Section */}
       <ContactSection />
-
       {/* Footer */}
       <Footer />
     </div>
