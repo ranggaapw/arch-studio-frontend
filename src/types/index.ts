@@ -105,3 +105,22 @@ export interface ProcessSettings {
   title: string;
   subtitle: string;
 }
+
+export interface AhpRequestType {
+  bahanVsBudget: number;
+  bahanVsKategori: number;
+  budgetVsKategori: number;
+}
+
+export interface ProjectRank {
+  project: Project;
+  score: number;
+}
+
+export interface AhpResult {
+  wBahan: number;
+  wBudget: number;
+  wKategori: number;
+  consistencyRatio: number;
+  rankings: ProjectRank[];
+}

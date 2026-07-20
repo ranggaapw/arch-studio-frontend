@@ -9,6 +9,7 @@ import Footer from '../components/common/Footer';
 import TestimonialSection from '../components/common/TestimonialSection';
 import FeaturedProject from '../components/common/FeaturedProject';
 import ContactSection from '../components/common/ContactSection';
+import BestDesignSection from '../components/common/BestDesignSection';
 
 export default function ClientHome() {
   const { data: bannerResponse, isLoading, isError } = useQuery({
@@ -60,6 +61,9 @@ export default function ClientHome() {
 
       {/* Featured Project */}
       <FeaturedProject />
+
+      {/* Best Design AHP Recommendation */}
+      <BestDesignSection />
 
       {/* Project Carousel */}
       <ProjectCarousel />
